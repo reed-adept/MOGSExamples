@@ -1,30 +1,69 @@
+/*
+Adept MobileRobots Robotics Interface for Applications (ARIA)
+Copyright (C) 2004-2005 ActivMedia Robotics LLC
+Copyright (C) 2006-2010 MobileRobots Inc.
+Copyright (C) 2011-2014 Adept Technology
+
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation; either version 2 of the License, or
+     (at your option) any later version.
+
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+If you wish to redistribute ARIA under different terms, contact 
+Adept MobileRobots for information about a commercial version of ARIA at 
+robots@mobilerobots.com or 
+Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
+*/
+
 #ifndef ACTIONGOTOSTRAIGHT_H
 #define ACTIONGOTOSTRAIGHT_H
+
+// Modified version of ARIA's ArActionGotoStraight; changes may be
+// incorporated into ArActionGotoStraight at some point.
 
 #include "ariaTypedefs.h"
 #include "ariaUtil.h"
 #include "ArAction.h"
 
-/// This action goes to a given ArPose very naively
+/** This action sets a heading and forward velocity based on angle and distance
+    from current robot position to a given goal point.
 
-/**
    This action naively drives straight towards a given ArPose. The
-   action stops the robot when it has travelled the distance that that
-   pose is away. It travels at 'speed' mm/sec.
+   action stops the robot when it is within a distance threshold (Close Dist.)
+   to the goal point, or alternatively if it has gone the expected distance 
+   to the goal point.  Maximum forward velocity can be set in the constructor
+   or by calling setSpeed().  The velocity requested is proportional to the 
+   remaining distance to the goal, but is limited to the speed set with
+   setSpeed().  The threshold for considering the goal achieved may be 
+   set by calling setCloseDist().
 
    You can give it a new goal pose with setGoal(), cancel its movement
    with cancelGoal(), and see if it got there with haveAchievedGoal().
+   You can reverse the motion by setting the backwards flag to true when
+   setting a new goal.  If you set the justDistance flag to true, the action
+   stops after covering the calculated distance to the goal rather than 
+   checking each iteration against the given Close Distance threshold.
 
-   For arguments to the goals and encoder goals you can tell it to go
-   backwards by calling them with the backwards parameter true.  If
-   you set the justDistance to true it will only really care about
-   having driven the distance, if false it'll try to get to the spot
-   you wanted within close distance.
+   Normally a new heading and forward velocity will be requested simultaneously.
+   To make the robot rotate in place before forward velocity, set the
+   turn threshold by calling setTurnThreshold().  This may be desired for
+   goals that are only a short distance away from the robot, to avoid a large
+   arc of motion.
 
-   This doesn't avoid obstacles or anything, you could add have an obstacle
-   avoidance ArAction at a higher priority to try to do this. (For
-   truly intelligent navigation, see the ARNL and SONARNL software libraries.)
-  @ingroup ActionClasses
+   This action does not check sensors.  You may use a higher priority action to
+   stop or otherwise override motion based on sensor data (e.g.
+   ArActionLimiterForward, or you own custom action.)
+
+   @ingroup ActionClasses
 **/
 
 

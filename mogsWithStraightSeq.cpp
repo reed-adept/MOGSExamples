@@ -1,3 +1,26 @@
+/*
+
+Copyright (c) 2014-2015 Adept Technology Inc.
+All rights reserved.  
+
+Redistribution of this example source code, with or without modification, is 
+permitted provided that the following conditions are met:   
+-    Redistributions must retain the above copyright notice, 
+     this list of conditions and the following disclaimer.  
+-    Redistributions must be in source code form only
+
+The information in this document is subject to change without notice and should
+not be construed as a commitment by Adept Technology, Inc.
+
+Adept Technology, Inc. makes no warranty as to the suitability of this material
+for use by the recipient, and assumes no responsibility for any consequences
+resulting from such use. 
+
+Note: All other non-example software, including binary software objects
+(libraries, programs), are prohibited from distribution under terms described
+in LICENSE.txt (refer to LICENSE.txt for details).
+*/
+
 
 #include "Aria.h"
 #include "ArNetworking.h"
@@ -8,6 +31,7 @@
 
 #include "GPSMapTools.h"
 #include "ActionGotoStraight.h"
+#include "ActionLimiterForwards.h"
 
 #include <assert.h>
 
@@ -399,7 +423,7 @@ class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
   ArFunctorC<SimpleStraightPointSequenceModeExample> myRobotTask;
   ArActionGroup myActionGroup;
   ArDrawingData myPathDrawingData;
-  ArActionLimiterForwards myLimitAction;
+  ActionLimiterForwards myLimitAction;
 public:
   SimpleStraightPointSequenceModeExample(std::list<ArPose>& path, double speed, bool loop, ArServerBase *server, ArRobot *robot, ArServerHandlerCommands *cmds = NULL, ArServerInfoDrawings *drawings = NULL) :
     ArServerMode(robot, server, "SimpleStraightPointSequence"),

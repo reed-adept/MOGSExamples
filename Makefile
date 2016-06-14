@@ -1,7 +1,7 @@
 
 TARGETS=mogsWithStraightSeq mogsServerWithStoppingAction
 
-SOURCES=mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp
+SOURCES=mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp ActionLimiterForwards.cpp
 
 ifndef ARNL
 ARNL:=/usr/local/Arnl
@@ -23,7 +23,7 @@ endif
 
 all: $(TARGETS)
 
-mogsWithStraightSeq: mogsWithStraightSeq.cpp ActionGotoStraight.o GPSMapTools.o
+mogsWithStraightSeq: mogsWithStraightSeq.cpp ActionGotoStraight.o GPSMapTools.o ActionLimiterForwards.o
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)
 
 mogsServerWithStoppingAction: mogsServerWithStoppingAction.cpp GPSMapTools.o

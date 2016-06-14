@@ -1,20 +1,44 @@
+MobileRobots Inc Individual Software License
+March 1, 2009
 
-Copyright (c) 2014-2015 Adept Technology Inc.
-All rights reserved.  
+READ THE TERMS AND CONDITIONS OF THIS LICENSE AGREEMENT CAREFULLY BEFORE COPYING AND INSTALLING THIS SOFTWARE.  THIS SOFTWARE AND ITS RELATED DOCUMENTATION ARE COPYRIGHTED AND LICENSED (NOT SOLD).  BY COPYING AND INSTALLING THIS SOFTWARE, YOU ARE ACCEPTING AND AGREEING TO THE TERMS OF THIS SOFTWARE LICENSE AGREEMENT.  IF YOU ARE WILLING TO BE BOUND BY THE TERMS OF THIS AGREEMENT, INDICATE ACCEPTANCE BY CLICKING THE "I AGREE..." BUTTON AT THE BOTTOM OF THIS PAGE AND CONTINUE WITH THE INSTALLATION. IF YOU ARE NOT WILLING TO BE BOUND BY ALL THE TERMS, EXIT THIS INSTALLATION PROGRAM, REMOVE ANY AND ALL COPIES OF THE SOFTWARE FROM YOUR COMPUTER AND STORAGE, AND RETURN THE SOFTWARE AND RELATED DOCUMENTATION TO US FOR A REFUND.
+ 
+1. DEFINITIONS
+"Software" means (a) all of the contents of the files on disk(s), CD-ROM(s), or other media as provided electronically or in print with which this Agreement is provided, including but not limited to (i) MRI or third-party computer information or software; (ii) digital images, stock photographs, clip art, sounds or other artistic works; and (iii) related explanatory written materials or files ("Documentation"); (b) upgrades, modified versions, updates, additions, and copies of the Software, if any, licensed to you by MRI (collectively, "Updates").  "Use", "Used" or "Using" means to access, install, download, copy or otherwise benefit from using the functionality of the Software in accordance with the Documentation.  "Individual" means one (1) unless otherwise indicated under a separate valid license (e.g. volume license) granted by MRI. "Computer" means one central processing unit (CPU) that accepts information in digital or similar form and manipulates it for a specific result bas
+ed on a sequence of instructions.  "MRI" means MobileRobots Inc, a Delaware corporation, 10 Columbia Drive, Amherst, New Hampshire 03031 USA.
+ 
+2. INDIVIDUAL LICENSE
+The Software accompanying this license and its related Documentation are licensed, not sold, to you, the Individual, if you or the provider of this Software to you is a bona fide purchaser of the Software manufactured by MRI. Upon purchase, you own the medium on which the Software is recorded, but MRI and/or MRI's Licensors retain title to the Software and related Documentation. You may make one copy only of this Software and Documentation in machine-readable form solely for backup purposes. You agree that you will not assign, sublicense, transfer, pledge, lease, rent or share your rights under this License Agreement, except that you may permanently transfer all of your rights under this License Agreement, provided that you retain no copies, you transfer all of the Software, and the transferee agrees to the terms of this License Agreement.  
 
-Redistribution of this example source code, with or without modification, is 
-permitted provided that the following conditions are met:   
--    Redistributions must retain the above copyright notice, 
-     this list of conditions and the following disclaimer.  
--    Redistributions must be in source code form only
+3. RESTRICTIONS 
+The Software contains trade secrets and other proprietary material. In order to protect them, and except as permitted by applicable legislation, you may not decompile, reverse engineer, disassemble or otherwise reduce the Software to a human-perceivable form. You may not modify, adapt for another platform, network, rent, lease, loan, distribute or create derivative works based upon the Software in whole or in part. You may not electronically transmit the Software from one computer to another or over a network.
 
-The information in this document is subject to change without notice and should
-not be construed as a commitment by Adept Technology, Inc.
+4. TERMINATION
+This License is effective until terminated. You may terminate this License at any time by destroying the Software, related documentation and all copies thereof. This license will terminate without notice from MRI if you fail to comply with any provisions of this License. Upon termination you must destroy the Software, related documentation and all copies thereof.
 
-Adept Technology, Inc. makes no warranty as to the suitability of this material
-for use by the recipient, and assumes no responsibility for any consequences
-resulting from such use. 
+5. EXPORT LAW ASSURANCES
+You may not use or otherwise export or re-export the Software except as authorized by United States law and the laws of the jurisdiction in which the software was obtained.
 
-Note: All other non-example software, including binary software objects
-(libraries, programs), are prohibited from distribution under terms described
-in LICENSE.txt (refer to LICENSE.txt for details).
+6. LIMITED WARRANTY ON MEDIA.
+MRI warrants the electronic and/or print media on which the Software and Documentation are recorded to be free from defects in materials and workmanship under normal use for a period of sixty (60) days from the date of purchase. MRI?s entire liability and your exclusive remedy will be replacement of the medium not meeting MRI?s Limited Warranty and which are returned to MRI or an authorized representative. MRI will have no responsibility to replace media damaged by accident, abuse or misapplication. ANY IMPLIED WARRANTIES ON THE MEDIUM INCLUDING THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE, ARE LIMITED IN DURATION TO SIXTY (60) DAYS FROM THE DATE OF DELIVERY.
+
+7. DISCLAIMER OF WARRANTY ON SOFTWARE.
+You expressly acknowledge and agree that use of the Software is at your sole risk. The Software and related Documentation are provided AS IS and are without warranty of any kind and MRI and MRI?s  Licensors (collectively referred to hereafter as MRI) EXPRESSLY DISCLAIM ALL WARRANTIES, ORAL OR WRITTEN, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. MRI DOES NOT WARRANT THAT THE FUNCTIONS CONTAINED IN THE SOFTWARE WILL MEET YOUR REQUIREMENTS, OR THAT THE OPERATION OF THE SOFTWARE WILL BE UNINTERRUPTED OR ERROR-FREE, OR THAT DEFECTS IN THE SOFTWARE WILL BE CORRECTED. FURTHERMORE, MRI DOES NOT WARRANT OR MAKE ANY REPRESENTATIONS REGARDING THE USE OR THE RESULTS OF THE USE OF THE SOFTWARE OR RELATED DOCUMENTATION IN TERMS OF THEIR CORRECTNESS, ACCURACY, RELIABILITY OR OTHERWISE. NO ORAL OR WRITTEN INFORMATION OR ADVICE GIVEN BY MRI OR AN AUTHORIZED REPRESENTATIVE SHALL CREATE A WARRANTY OR IN ANY WAY INC
+REASE THE SCOPE OF THIS WARRANTY.
+
+8. LIMITATION OF LIABILITY.
+UNDER NO CIRCUMSTANCES, INCLUDING NEGLIGENCE, SHALL MRI BE LIABLE FOR ANY INCIDENTAL, SPECIAL OR CONSEQUENTIAL DAMAGES, INCLUDING ANY LOST PROFITS OR LOST SAVINGS, OR FOR ANY CLAIM OF ANY PARTY, THAT RESULT FROM THE USE OR INABILITY TO USE THE SOFTWARE OR RELATED DOCUMENTATION, EVEN IF MRI OR AN AUTHORIZED REPRESENTATIVE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. In no event shall MRI?s total liability to you for all damages, losses, and causes of action exceed the amount paid by you for the Software.
+
+9. CONTROLLING LAW AND SEVERABILITY.
+This License shall be governed by and construed in accordance with the laws of the United States and the State of New Hampshire. If for any reason a court of competent jurisdiction finds any provision of this License, or portion thereof, to be unenforceable, that provision of the License shall be enforced to the maximum extent permissible so as to effect the intent of the parties, and the remainder of this License shall continue in full force and effect.
+
+10. COMPLETE AGREEMENT.
+This License constitutes the entire agreement between the parties with respect to the use of the Software and related documentation, and supersedes all prior understandings or agreements, written or oral, regarding such subject matter. No amendment to or modification of the License will be binding unless in writing and signed by a duly authorized representative of MRI.
+
+11. TRADEMARK
+MobileRobots Inc is a trademark of MRI.  No right, license or interest to such trademark is granted hereunder, and you agree that no such right, license, or interest shall be asserted by you with respect to such trademark.
+
+12. NO WAIVER
+The failure of either party to enforce any rights granted hereunder or to take action against the other party in the event of any breach hereunder shall not be deemed a waiver by that party as to subsequent enforcement of rights or subsequent actions in the event of future breaches. 
+
+
