@@ -1,5 +1,5 @@
-#ifndef ARACTIONGOTOSTRAIGHT_H
-#define ARACTIONGOTOSTRAIGHT_H
+#ifndef ACTIONGOTOSTRAIGHT_H
+#define ACTIONGOTOSTRAIGHT_H
 
 #include "ariaTypedefs.h"
 #include "ariaUtil.h"
@@ -28,12 +28,12 @@
 **/
 
 
-class ArActionGotoStraight : public ArAction
+class ActionGotoStraight : public ArAction
 {
 public:
-  AREXPORT ArActionGotoStraight(const char *name = "goto", 
+  AREXPORT ActionGotoStraight(const char *name = "goto", 
 				double speed = 400);
-  AREXPORT virtual ~ArActionGotoStraight();
+  AREXPORT virtual ~ActionGotoStraight();
 
   /// Sees if the goal has been achieved
   AREXPORT bool haveAchievedGoal(void);
@@ -68,27 +68,33 @@ public:
   double getCloseDist(void) { return myCloseDist; }
   /// Sets whether we're backing up there or not (set in the setGoals)
   bool getBacking(void) { return myBacking; }
+  
+  /// @warning if threshAngle is too small (smaller than about 20 deg) then
+  /// the robot may not achieve that heading, and it could become stuck with no
+  /// movement.
+  void setTurnThreshold(double threshAngle) { myTurnThresh = threshAngle; }
+
+protected:
   AREXPORT virtual ArActionDesired *fire(ArActionDesired currentDesired);
-  AREXPORT virtual ArActionDesired *getDesired(void) { return &myDesired; }
+  virtual ArActionDesired *getDesired(void) { return &myDesired; }
 #ifndef SWIG
-  AREXPORT virtual const ArActionDesired *getDesired(void) const 
+  virtual const ArActionDesired *getDesired(void) const 
                                                         { return &myDesired; }
 #endif
-protected:
+
   ArPose myGoal;
   bool myUseEncoderGoal;
   ArPose myEncoderGoal;
   double mySpeed;
   bool myBacking;
   ArActionDesired myDesired;
-  bool myPrinting;
+  const bool myPrinting;
   double myDist;
   double myCloseDist;
-
   bool myJustDist;
-
   double myDistTravelled;
   ArPose myLastPose;
+  double myTurnThresh;
   
   enum State
   {
@@ -99,4 +105,4 @@ protected:
   State myState;
 };
 
-#endif // ARACTIONGOTO
+#endif // ACTIONGOTO

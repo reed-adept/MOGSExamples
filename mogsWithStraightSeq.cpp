@@ -4,8 +4,10 @@
 #include "Arnl.h"
 #include "ArPathPlanningInterface.h"
 #include "ArGPSLocalizationTask.h"
-//#include "ArGPSMapTools.h"
 #include "ArSystemStatus.h"
+
+#include "GPSMapTools.h"
+#include "ActionGotoStraight.h"
 
 #include <assert.h>
 
@@ -392,11 +394,12 @@ class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
   ArFunctorC<SimpleStraightPointSequenceModeExample> myDeactivateCmdCB;
   bool myActivating, myDeactivating;
   bool mySentPath;
-  ArActionGotoStraight myGotoAction;
+  ActionGotoStraight myGotoAction;
   bool myActive;
   ArFunctorC<SimpleStraightPointSequenceModeExample> myRobotTask;
   ArActionGroup myActionGroup;
   ArDrawingData myPathDrawingData;
+  ArActionLimiterForwards myLimitAction;
 public:
   SimpleStraightPointSequenceModeExample(std::list<ArPose>& path, double speed, bool loop, ArServerBase *server, ArRobot *robot, ArServerHandlerCommands *cmds = NULL, ArServerInfoDrawings *drawings = NULL) :
     ArServerMode(robot, server, "SimpleStraightPointSequence"),
@@ -411,7 +414,8 @@ public:
     myActive(false),
     myRobotTask(this, &SimpleStraightPointSequenceModeExample::checkTask),
     myActionGroup(robot),
-    myPathDrawingData("polyLine", ArColor(150, 200, 240), 4, 49, 200, "DefaultOn")
+    myPathDrawingData("polyLine", ArColor(150, 200, 240), 4, 49, 200, "DefaultOn"),
+    myLimitAction("speed limiter", 1000, 2000, 200, 2)
   {
     
     ArServerMode::setMode("SimpleStraightPointSequence");
@@ -433,10 +437,14 @@ public:
 
     myGotoAction.setRobot(robot);
     myGotoAction.setCloseDist(50);
+    myGotoAction.setTurnThreshold(30);
     // TODO myGotoAction.setTurnSpeed();
     // TODO myGotoAction.setAccel();
     // TODO myGotoAction.setDecel();
     myActionGroup.addAction(&myGotoAction, 10);
+    
+    myActionGroup.addAction(&myLimitAction, 500);
+
 
   }
 
@@ -521,6 +529,20 @@ public:
         deactivate();
         return;
       }
+    }
+
+    if(myLimitAction.getStopped())
+    {
+      std::string s("Stopping because of ");
+      const ArRangeDevice *dev = myLimitAction.getLastSensorReadingDevice();
+      //dev->lockDevice();
+      s += dev->getName();
+      //dev->unlockDevice();
+      setStatus(s.c_str());
+    }
+    else
+    {
+      setStatus("Continuing");
     }
   }
 
@@ -656,8 +678,8 @@ int main(int argc, char **argv)
 
   // Create an ArSonarDevice object (ArRangeDevice subclass) and 
   // connect it to the robot.
-  ArSonarDevice sonarDev;
-  robot.addRangeDevice(&sonarDev);
+  //ArSonarDevice sonarDev;
+  //robot.addRangeDevice(&sonarDev);
 
 
 
@@ -725,7 +747,7 @@ int main(int argc, char **argv)
     /* Create localization and path planning threads */
 
 
-  ArPathPlanningTask pathTask(&robot, &sonarDev, &map);
+  ArPathPlanningTask pathTask(&robot, NULL, /*&sonarDev,*/ &map);
   ArGlobalFunctor1<ArPose> /*, ArPathPlanningTask*>*/ goalDoneCB(&goalDone); //, &pathTask);
   pathTask.addGoalDoneCB(&goalDoneCB);
 
@@ -1134,7 +1156,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   gpsLocTask.addLocalizationInitCommands(&commands);
   
   // Add some commands for manually creating map objects based on GPS positions:
-//  ArGPSMapTools gpsMapTools(gps, &robot, &commands, &map);
+  GPSMapTools gpsMapTools(gps, &robot, &commands, &map, &serverMap);
 
   // Add command to set simulated GPS position manually
   if(gpsConnector.getGPSType() == ArGPSConnector::Simulator)
@@ -1255,6 +1277,16 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   
 
   std::list<ArPose> path;
+  
+  // positions outside mobilerobots building (see out6.map)
+  path.push_back(ArPose(-4109, -979)); //goal1
+  path.push_back(ArPose(-284, 9250));  //goal2
+  path.push_back(ArPose(1125, 8686));  //goal4
+  path.push_back(ArPose(-2864, -1562));//goal3
+  path.push_back(ArPose(-1181, -2009));//goal5
+  path.push_back(ArPose(2375, 8262));  //goal6
+
+  /* or:
   const int n = 4;
   const int spacing = robot.getRobotWidth();
   const int length = 8000;
@@ -1273,11 +1305,10 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
       y -= length;
     // todo offset along some orientation
   }
+  */
 
   SimpleStraightPointSequenceModeExample straightPointSeqMode(path, 400, false, &server, &robot, &commands, &drawings);
   
-  ArActionLimiterForwards limitFwd("speed limiter", 1000, 2000, 200, 2);
-  straightPointSeqMode.getActionGroup()->addAction(&limitFwd, 500);
 
 // enable to prevent touring if lost:
 //  ArActionLost actionLostStraightTour(&gpsLocTask, &pathTask, &straightPointSeqMode);

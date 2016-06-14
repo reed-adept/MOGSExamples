@@ -1,56 +1,45 @@
 
-# Copy this Makefile as a starting point if you are developing your own project
-# outside of the ARIA examples, for example in your home directory, with
-# multiple source files that must be compiled and linked to ARIA.
-#
-# You must set the value of TARGET to the name of your program. 
-#
-# This uses the $(wildcard *.cpp) function, so all .cpp files
-# found in the current directory will be compiled and linked
-# to produce $(TARGET). If instead you want to list the source
-# files individually, replace $(wildcard *.cpp) with the list of
-# files.
-# libAria will be linked automatically to the target. If you need additional libraries
-# such as ArNetworking, ARNL, or other libraries, prepend them to
-# the LINK variable.
+TARGETS=mogsWithStraightSeq mogsServerWithStoppingAction
 
-TARGET = myProgram
+SOURCES=mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp
 
-# If you use a different file extension for source files such as .cc, change it here.
-CXXFILEEXT=.cpp
+ifndef ARNL
+ARNL:=/usr/local/Arnl
+endif
 
-SOURCES = $(wildcard *$(CXXFILEEXT))
-# OR list them explicitly e.g.: SOURCES = myProgram.cpp myUtil.cpp myClass.cpp 
+LFLAGS:=-L$(ARNL)/lib
 
-LINK = -lAria -ldl -lrt -lm -lpthread
-# e.g. to add ArNetworking: LINK = -lArNetworking -lAria -ldl -lrt -lpthread -lm
-# e.g. for ARNL instead: LINK = -lArnl -lArnlBase -lArNetworking -lAriaForArnl -ldl -lrt -lpthread -lm
+LINK:=-lMogs -lBaseArnl -lArNetworkingForArnl -lAriaForArnl -ldl -lrt -lm -lpthread
 
-LFLAGS = -L/usr/local/Aria/lib
-# e.g. for ARNL: LINK = -L/usr/local/Arnl/lib
+INCLUDE:=-I$(ARNL)/include -I$(ARNL)/include/Aria -I$(ARNL)/include/ArNetworking
 
-INCLUDE = -I/usr/local/Aria/include
-# e.g. for ARNL: INCLUDE = -I/usr/local/Arnl/include # -I/usr/local/Arnl/include/Aria -I/usr/local/Arnl/include/ArNetworking
+CXXFLAGS:=-fPIC -g -Wall -D_REENTRANT
 
-CXXFLAGS = -fPIC -g -Wall -D_REENTRANT
-
-
-OBJ := $(patsubst %$(CXXFILEEXT),%.o,$(SOURCES))
+OBJ:=$(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(patsubst %.cpp,%.o,$(SOURCES))))
 
 ifndef CXX
 CXX:=c++
 endif
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(OBJ)
+mogsWithStraightSeq: mogsWithStraightSeq.cpp ActionGotoStraight.o GPSMapTools.o
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)
 
-%.o: %$(CXXFILEEXT) 
+mogsServerWithStoppingAction: mogsServerWithStoppingAction.cpp GPSMapTools.o
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)
+
+%.o: %.cpp
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE) -o $@ $<
+
+%.o: %.cc
+	$(CXX) -c $(CXXFLAGS) $(INCLUDE) -o $@ $<
+
+%.o: %.c
 	$(CXX) -c $(CXXFLAGS) $(INCLUDE) -o $@ $<
 	
 clean: 
-	-rm $(TARGET) $(OBJ)
+	-rm $(TARGETS) $(OBJ)
 
 Makefile.dep: $(SOURCES)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MM $(SOURCES) >Makefile.dep
