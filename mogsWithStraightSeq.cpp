@@ -32,6 +32,8 @@ in LICENSE.txt (refer to LICENSE.txt for details).
 #include "GPSMapTools.h"
 #include "ActionGotoStraight.h"
 #include "ActionLimiterForwards.h"
+#include "RegularStopAction.h"
+#include "ExamplePauseTask.h"
 
 #include <assert.h>
 
@@ -408,6 +410,11 @@ bool handleDebugMessage(ArRobotPacket *pkt)
 }
 
 
+// TODO: add action parameters to ArConfig (speeds, thresholds, etc.)
+// TODO: add parameters to ArActionGotoStraight for acceleration, deceleration
+// and rotational velocity 
+// The obstacle motion limiter will be in the action group at priority 500.
+// The goto action is at priority 10.
 class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
 {
   std::list<ArPose> myPoints;
@@ -472,6 +479,7 @@ public:
 
   }
 
+  /// The obstacle motion limiter will be in the action group at priority 500.  The goto action is at priority 10.
   virtual ArActionGroup *getActionGroup() { return &myActionGroup; }
 
   void activate()
@@ -1300,6 +1308,10 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   gpsLocTask.localizeRobotAtHomeBlocking();
   
 
+  /* Add a new mode that uses ArActionGotoStraight to drive mostly straight
+   * towards a sequence of points.  Custom Commands are added to
+   * activate/deactivate this mode. */
+
   std::list<ArPose> path;
   
   // positions outside mobilerobots building (see out6.map)
@@ -1337,6 +1349,34 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
 // enable to prevent touring if lost:
 //  ArActionLost actionLostStraightTour(&gpsLocTask, &pathTask, &straightPointSeqMode);
 //  straightPointSeqMode.getActionGroup()->addAction(&actionLostStraightTour, 900);
+
+
+  /* Add an action to the path planning action group that will cause the robot
+   * to stop at a distance interval, and perform some task.  This could be a
+   * simple function call to printRobotPos() that returns immediately, or it could
+   * start a longer running task ExamplePauseTask.
+   * This is enabled/disabled via ArConfig parameters. (Robot Configuration in
+   * mobileeyes) 
+   */
+  ArRetFunctor<bool> *stopCB = NULL;
+
+  // Simple immediate function call:
+  //RobotPtr = &robot;
+  //GlobalFixedRetFunctor<bool> printRobotPosCB(&printRobotPos, true);
+  //stopCB = &printRobotPosCB;
+  
+  // Create the RegularStopAction and add it to the action group:
+  RegularStopAction regularStopAction(5000/*mm*/, NULL, "RegularStopAction", &commands);
+  straightPointSeqMode.getActionGroup()->addAction(&regularStopAction, 75);
+
+  // initiate a somewhat long running asynchronous task:
+  ExamplePauseTask exampleTask(5.0/*sec*/, &robot, &regularStopAction, &popupServer);
+  stopCB = exampleTask.getStartCallback();
+  regularStopAction.addCallback(stopCB);
+  
+
+
+  
 
   // Start the networking server's thread
   server.runAsync();
