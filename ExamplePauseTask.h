@@ -28,10 +28,30 @@ in LICENSE.txt (refer to LICENSE.txt for details).
 #include "ArNetworking.h"
 #include "RegularStopAction.h"
 
+class ScopedLock { 
+ private: 
+   ArMutex& mtx; 
+ public: 
+   ScopedLock(ArMutex& m) : mtx(m) { 
+     mtx.lock(); 
+   } 
+   ~ScopedLock() { 
+     mtx.unlock(); 
+   } 
+   void lock() { mtx.lock(); } 
+   void unlock() { mtx.unlock(); } 
+   void sleepUnlocked(unsigned int ms) { unlock(); ArUtil::sleep(ms); lock(); }
+ }; 
+
 // Example target of RegularStopAction
+// Note, an elaboration on ArASyncTask may be added to ARIA or ARNL in the
+// future which takes care of most of the threading, mutexes, functors, state, 
+// commands, some ArConfig stuff, etc. 
+// to the task implementation can be smaller and cleaner.
 class ExamplePauseTask : public virtual ArASyncTask
 {
   ArRetFunctorC<bool, ExamplePauseTask> myStartCallback;
+  ArFunctorC<ExamplePauseTask> myStopCallback;
   double myTime;
   ArRobot *myRobot;
   RegularStopAction *myAction;
@@ -39,17 +59,25 @@ class ExamplePauseTask : public virtual ArASyncTask
   ArServerHandlerPopup *popupServer;
   ArServerHandlerPopupInfo popupInfo;
   ArFunctor2C<ExamplePauseTask, ArTypes::Byte4, int> handlePopupCB;
+  ArTypes::Byte4 popupID;
+  ArGPS *myGPS;
+  ArMutex mutex;
 
 public:
-  ExamplePauseTask(double time, ArRobot *robot, RegularStopAction *action, ArServerHandlerPopup *_popupServer = NULL) :
+  ExamplePauseTask(double time, ArRobot *robot, ArGPS *gps, RegularStopAction *action, ArServerHandlerPopup *_popupServer = NULL) :
     myStartCallback(this, &ExamplePauseTask::start), 
+    myStopCallback(this, &ExamplePauseTask::stop),
     myTime(time), myRobot(robot), myAction(action),
-    popupServer(_popupServer),
     keepPausing(false),
+    popupServer(_popupServer),
     popupInfo(NULL, "Example Pause Task", "Pausing...", ArServerHandlerPopup::INFORMATION, 1, 0, -1, NULL, "Resume", "Resuming...", "Ignore", "Ignoring..."),
-    handlePopupCB(this, &ExamplePauseTask::handlePopup)
+    handlePopupCB(this, &ExamplePauseTask::handlePopup),
+    popupID(-1),
+    myGPS(gps)
   {
     Aria::getConfig()->addParam(ArConfigArg("PauseTime", &myTime, "Time to pouse and do nothing before end of task (secs)", 0.0), "Pause Task");
+    action->setCallback(&myStartCallback);
+    action->setDeactivatedCallback(&myStopCallback);
   }
 
   ArRetFunctor<bool> * getStartCallback() { return &myStartCallback; }
@@ -62,24 +90,45 @@ protected:
     return false;
   }
 
+  void stop()
+  {
+    ScopedLock lock(mutex);
+    if(popupServer && popupID != -1) popupServer->closePopup(popupID, "Interrupted");
+    popupID = -1;
+    stopRunning();
+  }
+
+  virtual const char *getThreadActivity() 
+  {
+    ScopedLock lock(mutex);
+    if(!getRunning()) return "Not running";
+    if(keepPausing) return "Paused";
+    else return "Resuming";
+  }
+
   void *runThread(void*) 
   {
+    ScopedLock lock(mutex);
     ArLog::log(ArLog::Normal, " * * * * ExamplePauseTask: started, waiting %.0f ms...", myTime*1000);
     ArTime sleepTime;
-    ArTypes::Byte4 popupID = 0;
     if(popupServer) popupID = popupServer->createPopup(&popupInfo, &handlePopupCB);
     keepPausing = true;
-    while(keepPausing)
+    while(getRunning() && keepPausing)
     {
-	if(sleepTime.secSince() >= myTime)
+      if(sleepTime.secSince() >= myTime)
         	break;
-        ArUtil::sleep(200);
+      lock.sleepUnlocked(200); //ArUtil::sleep(200);
     }
+    if(!getRunning()) return 0;
     keepPausing = false;
-    if(popupServer) popupServer->closePopup(popupID, "Resuming");
+    if(popupServer && popupID != -1) popupServer->closePopup(popupID, "Resuming");
+    popupID = -1;
+    lock.unlock();
     myRobot->lock();
-    ArLog::log(ArLog::Normal, " * * * * ExamplePauseTask: Robot is at %f, %f, %f * * * *", myRobot->getX(), myRobot->getY(), myRobot->getTh()); 
+    ArLog::log(ArLog::Normal, " * * * * ExamplePauseTask: Robot is at (%f, %f, %f), GPS (%f, %f) * * * *", myRobot->getX(), myRobot->getY(), myRobot->getTh(), myGPS->getLatitude(), myGPS->getLongitude()); 
     myRobot->unlock();
+    lock.lock();
+    if(!getRunning()) return 0;
     ArLog::log(ArLog::Normal, " * * * * ExamplePauseTask: telling action to let navigation resume...", myTime);
     myAction->resume();
     return 0;
@@ -87,7 +136,7 @@ protected:
 
   void handlePopup(ArTypes::Byte4 popupID, int button)
   {
-printf("BUTTON %d\n", button);
+    ScopedLock lock(mutex);
      if(button == 0) //OK
         keepPausing = false;
      else if(button == 1 || button == -2) // Ignore or closed
