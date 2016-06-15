@@ -1234,7 +1234,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   gpsLocTask.addLocalizationInitCommands(&commands);
   
   // Add some commands for manually creating map objects based on GPS positions:
-  //GPSMapTools gpsMapTools(gps, &robot, &commands, &map, &serverMap);
+  GPSMapTools gpsMapTools(gps, &robot, &commands, &map, &serverMap);
 
   // Add command to set simulated GPS position manually
   if(gpsConnector.getGPSType() == ArGPSConnector::Simulator)
