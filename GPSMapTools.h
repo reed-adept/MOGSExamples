@@ -52,6 +52,7 @@ class GPSMapTools
   bool myObstacleLineStarted;
   ArFunctor1C<GPSMapTools, ArArgumentBuilder*> myStartNewMapCB;
   ArFunctor1C<GPSMapTools, ArArgumentBuilder*> myAddGoalHereCB;
+  ArFunctor1C<GPSMapTools, ArArgumentBuilder*> myAddHomeHereCB;
   ArFunctorC<GPSMapTools> mySetOriginCB;
   ArFunctorC<GPSMapTools> myStartForbiddenLineCB;
   ArFunctorC<GPSMapTools> myEndForbiddenLineCB;
@@ -65,6 +66,7 @@ class GPSMapTools
   bool checkMap(const std::string &action);
   void startNewMap(ArArgumentBuilder *args);
   void addGoalHere(ArArgumentBuilder *args);
+  void addHomeHere(ArArgumentBuilder *args);
   void setOrigin();
   void startForbiddenLine();
   void endForbiddenLine();
