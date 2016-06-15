@@ -1359,7 +1359,22 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
    * activate/deactivate this mode. */
 
   std::list<ArPose> path;
+
+  for(int i = 1; i <= 99; ++i)  
+  {
+    char goalname[8];
+    sprintf(goalname, "%d", i);
+    ArMapObject *obj = map.findFirstMapObject(goalname, "Goal", true);
+    if(obj) printf("found goal %s\n", goalname);
+    else {
+	printf("no goal named %s in map!\n", goalname);
+	break;
+    }
+    path.push_back(obj->getPose());
+  }
+  printf("found %d goals in map\n", path.size());
   
+  /* or:
   // positions outside mobilerobots building (see out6.map)
   path.push_back(ArPose(-4109, -979)); //goal1
   path.push_back(ArPose(-284, 9250));  //goal2
@@ -1367,6 +1382,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   path.push_back(ArPose(-2864, -1562));//goal3
   path.push_back(ArPose(-1181, -2009));//goal5
   path.push_back(ArPose(2375, 8262));  //goal6
+  */
 
   /* or:
   const int n = 4;
