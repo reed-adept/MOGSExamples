@@ -25,8 +25,8 @@ Amherst, NH 03031
 
 /* User map-making tools for MOGS */
 
-#ifndef ARGPSMAPTOOLS_H
-#define ARGPSMAPTOOLS_H
+#ifndef _GPSMAPTOOLS_H
+#define _GPSMAPTOOLS_H
 
 #include "Aria.h"
 #include "ArGPS.h"
