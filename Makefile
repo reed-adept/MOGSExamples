@@ -1,7 +1,7 @@
 
 TARGETS=mogsWithStraightSeq mogsServerWithStoppingAction
 
-SOURCES=mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp ActionLimiterForwards.cpp
+SOURCES=mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp ActionLimiterForwards.cpp ActionGotoStraight.h ActionLimiterForwards.h ExamplePauseTask.h GPSMapTools.h MoreFunctors.h RegularStopAction.h
 
 ifndef ARNL
 ARNL:=/usr/local/Arnl
@@ -15,7 +15,7 @@ INCLUDE:=-I$(ARNL)/include -I$(ARNL)/include/Aria -I$(ARNL)/include/ArNetworking
 
 CXXFLAGS:=-fPIC -g -Wall -D_REENTRANT
 
-OBJ:=$(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(patsubst %.cpp,%.o,$(SOURCES))))
+OBJ:=$(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(patsubst %.cpp,%.o,$(patsubst %.h,,$(patsubst %.hh,,$(SOURCES))))))
 
 ifndef CXX
 CXX:=c++
@@ -23,10 +23,10 @@ endif
 
 all: $(TARGETS)
 
-mogsWithStraightSeq: mogsWithStraightSeq.cpp ActionGotoStraight.o GPSMapTools.o ActionLimiterForwards.o
+mogsWithStraightSeq: mogsWithStraightSeq.o ActionGotoStraight.o GPSMapTools.o ActionLimiterForwards.o
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)
 
-mogsServerWithStoppingAction: mogsServerWithStoppingAction.cpp GPSMapTools.o
+mogsServerWithStoppingAction: mogsServerWithStoppingAction.o GPSMapTools.o
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)
 
 %.o: %.cpp
@@ -47,6 +47,13 @@ Makefile.dep: $(SOURCES)
 -include Makefile.dep
 
 # to force remaking of Makefile.dep:
-dep: clean Makefile.dep
+cleanDep: FORCE
+	-rm Makefile.dep
 
-.PHONY: clean all dep
+dep: clean cleanDep 
+	$(MAKE) Makefile.dep 
+
+.PHONY: clean all dep cleanDep
+
+FORCE:
+
