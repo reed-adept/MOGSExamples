@@ -157,8 +157,10 @@ AREXPORT ArActionDesired *ActionGotoStraight::fire(ArActionDesired currentDesire
        (!myJustDist && dist < myCloseDist))
       && ArMath::fabs(myRobot->getVel() < 5))
   {
-    if (myPrinting)
-      ArLog::log(ArLog::Normal, "Achieved goal");
+    if(myJustDist)
+      ArLog::log(ArLog::Normal, "%s: Achieved distance to goal (dist=%.2f, robotVel=%.2f)", getName(), distToGo, myRobot->getVel());
+    else
+      ArLog::log(ArLog::Normal, "%s: Achieved goal (dist=%.2f, closeDist=%.2f, robotVel=%.2f)", getName(), dist, myCloseDist, myRobot->getVel());
     myState = STATE_ACHIEVED_GOAL;
     myDesired.setVel(0);
     myDesired.setDeltaHeading(0);
@@ -191,8 +193,8 @@ AREXPORT ArActionDesired *ActionGotoStraight::fire(ArActionDesired currentDesire
     myDesired.setVel(vel);
   }
   if (myPrinting)
-    ArLog::log(ArLog::Normal, "dist %.0f angle %.0f angleDelta %.0f vel %.0f turnThresh %.0f desiredHeading %.0f desiredVel %.0f", 
-	       dist, angle, angleDelta, vel, myTurnThresh, myDesired.getHeading(), myDesired.getVel());
+    ArLog::log(ArLog::Normal, "dist %.0f angle %.0f angleDelta %.0f vel %.0f turnThresh %.0f desiredHeading %.0f desiredVel %.0f closeDist %.0f", 
+	       dist, angle, angleDelta, vel, myTurnThresh, myDesired.getHeading(), myDesired.getVel(), myCloseDist);
   return &myDesired;
 }
 
