@@ -1,0 +1,3 @@
+Move track drawing from RegularStopAction to SimpleStraightPointSequenceMode.
+Move SimpleStraightPointSequenceMode to separate file, give it a better name.
+Add drawing of robot footprint or position dot at stopped position to RegularStopAction (or a task?)
