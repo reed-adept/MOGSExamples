@@ -478,7 +478,7 @@ public:
     robot->unlock();
 
     myGotoAction.setRobot(robot);
-    myGotoAction.setCloseDist(50);
+    myGotoAction.setCloseDist(25);
     myGotoAction.setTurnThreshold(30);
     // TODO myGotoAction.setTurnSpeed();
     // TODO myGotoAction.setAccel();
@@ -534,7 +534,7 @@ public:
     ArLog::log(ArLog::Normal, "SimplePathFollow: %s", buf);
     ArServerMode::setStatus(buf);
     mySentPath = false;
-    myGotoAction.setGoal(*myNextPoint);
+    myGotoAction.setGoal(*myNextPoint, false, false); // false for backwards, false to measure distance remaining to goal point rather than precalculating distance
     myGotoAction.activate();
   }
 
