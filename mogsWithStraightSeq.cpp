@@ -421,6 +421,7 @@ class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
   std::list<ArPose>::iterator myNextPoint;
   bool myLoop;
   ArFunctor2C<SimpleStraightPointSequenceModeExample, ArServerClient*, ArNetPacket*> myGetPathDrawingCB;
+  ArFunctor2C<SimpleStraightPointSequenceModeExample, ArServerClient*, ArNetPacket*> myGetTrackDrawingCB;
   ArFunctorC<SimpleStraightPointSequenceModeExample> myActivateCmdCB;
   ArFunctorC<SimpleStraightPointSequenceModeExample> myDeactivateCmdCB;
   bool myActivating, myDeactivating;
@@ -430,7 +431,10 @@ class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
   ArFunctorC<SimpleStraightPointSequenceModeExample> myRobotTask;
   ArActionGroup myActionGroup;
   ArDrawingData myPathDrawingData;
+  ArDrawingData myTrackDrawingData;
   ActionLimiterForwards myLimitAction;
+  std::list<ArPose> track;
+  unsigned int trackCounter;
 public:
   SimpleStraightPointSequenceModeExample(std::list<ArPose>& path, double speed, bool loop, ArServerBase *server, ArRobot *robot, ArServerHandlerCommands *cmds = NULL, ArServerInfoDrawings *drawings = NULL) :
     ArServerMode(robot, server, "SimpleStraightPointSequence"),
@@ -438,6 +442,7 @@ public:
     myNextPoint(path.begin()),
     myLoop(loop),
     myGetPathDrawingCB(this, &SimpleStraightPointSequenceModeExample::getPathDrawingNetCallback),
+    myGetTrackDrawingCB(this, &SimpleStraightPointSequenceModeExample::getTrackDrawingNetCallback),
     myActivateCmdCB(this, &SimpleStraightPointSequenceModeExample::activate),
     myDeactivateCmdCB(this, &SimpleStraightPointSequenceModeExample::deactivate),
     myActivating(false), myDeactivating(false),
@@ -447,7 +452,9 @@ public:
     myRobotTask(this, &SimpleStraightPointSequenceModeExample::checkTask),
     myActionGroup(robot),
     myPathDrawingData("polyLine", ArColor(150, 200, 240), 4, 49, 200, "DefaultOn"),
-    myLimitAction("speed limiter", 1000, 2000, 200, 2)
+    myTrackDrawingData("polyLine", ArColor(200, 200, 200), 30, 48, 200, "DefaultOn"),
+    myLimitAction("speed limiter", 1000, 2000, 200, 2),
+    trackCounter(0)
   {
     
     ArServerMode::setMode("SimpleStraightPointSequence");
@@ -459,7 +466,10 @@ public:
     }
 
     if(drawings)
+    {
       drawings->addDrawing(&myPathDrawingData, "Simple Straight Point Sequence Path", &myGetPathDrawingCB);
+      drawings->addDrawing(&myTrackDrawingData, "Line showing track of robot", &myGetTrackDrawingCB);
+    }
 
     // TODO add a drawing that shows path taken
 
@@ -495,6 +505,10 @@ public:
     myActionGroup.activate();
     myActivating = false;
     myActive = true;
+    track.clear();
+    trackCounter = 0;
+    ArRobot *robot = myGotoAction.getRobot();
+    track.push_back(robot->getPose());
   }
 
   virtual void deactivate()
@@ -508,6 +522,7 @@ public:
     myDeactivating = false;
     mySentPath = false; // send new path (will be empty) after deactivate
     myActive = false;
+    track.clear();
   }
   
 
@@ -577,6 +592,18 @@ public:
     {
       setStatus("Continuing");
     }
+    
+    ArRobot *robot = myGotoAction.getRobot();
+    if(!robot->isStopped())
+    {
+      if(++trackCounter > 10)
+      {
+        trackCounter = 0;
+        track.push_back(robot->getPose());
+        if((track.size() * (sizeof(ArTypes::Byte4)*2) ) + sizeof(ArTypes::Byte4) > ArNetPacket::MAX_DATA_LENGTH)
+          track.pop_front();
+      }
+    }
   }
 
 protected:
@@ -605,6 +632,24 @@ protected:
     }
     client->sendPacketUdp(&reply);
     mySentPath = true;
+  }
+
+  void getTrackDrawingNetCallback(ArServerClient *client, ArNetPacket *reqPkt) 
+  {
+    ArNetPacket reply;
+    if(!myActive || !ArServerMode::isActive()) 
+    {
+      reply.byte2ToBuf(0);
+      client->sendPacketUdp(&reply);
+      return;
+    }
+    reply.byte4ToBuf(track.size());
+    for(std::list<ArPose>::iterator i = track.begin(); i != track.end(); ++i)
+    {
+      reply.byte4ToBuf((int) i->getX());
+      reply.byte4ToBuf((int) i->getY());
+    }
+    client->sendPacketUdp(&reply);
   }
 
 };
