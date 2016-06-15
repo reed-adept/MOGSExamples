@@ -45,6 +45,7 @@ class RegularStopAction : public virtual ArAction
 {
   double stopdist;
   ArRetFunctor<bool> *callback; // todo make it a callbacklist
+  ArFunctor *deactivatedCallback;
   bool stopped;
   bool stopping;
   bool enabled;
@@ -54,21 +55,29 @@ class RegularStopAction : public virtual ArAction
   ArRetFunctorC<bool, RegularStopAction> myProcessConfigCB;
   ArActionDesired desiredAction;
   ArMutex mutex; 
+  ArFunctor2C<RegularStopAction, ArServerClient*, ArNetPacket*> myGetTrackDrawingCB;
+  std::list<ArPose> track;
+  unsigned int trackCounter;
 protected:
   void lock() { mutex.lock(); }
   void unlock() { mutex.unlock(); }
+  ArDrawingData myTrackDrawingData;
 public:
-  RegularStopAction(double default_stopdist, ArRetFunctor<bool> *_cb = NULL, const char *name = "RegularStopAction", ArServerHandlerCommands *cmds = NULL) :
+  RegularStopAction(double default_stopdist,  const char *name = "RegularStopAction", ArServerHandlerCommands *cmds = NULL, ArServerInfoDrawings *drawings  =NULL) :
     ArAction(name),
     stopdist(default_stopdist), // may be replaced by value from ArConfig later
-    callback(_cb), 
+    callback(NULL), 
+    deactivatedCallback(NULL),
     stopped(false),
     stopping(false),
     enabled(true),
     myActivateCmdCB(this, &RegularStopAction::activate),
     myDeactivateCmdCB(this, &RegularStopAction::deactivate),
     myProcessConfigCB(this, &RegularStopAction::processConfig),
-    mutex(true) // true for recursive, needs to allow recursive locking
+    mutex(true), // true for recursive, needs to allow recursive locking
+    myGetTrackDrawingCB(this, &RegularStopAction::getTrackDrawingNetCallback),
+    trackCounter(0),
+    myTrackDrawingData("polyLine", ArColor(200, 200, 200), 30, 48, 200, "DefaultOn")
   {
     Aria::getConfig()->addParam(ArConfigArg("StopDistance", &stopdist, "During path following, stop and perform action after robot has gone this distance (mm)", 1), "Regular Stop Action");
     Aria::getConfig()->addParam(ArConfigArg("Enabled", &enabled, "Don't activate if false"), "Regular Stop Action");
@@ -77,12 +86,19 @@ public:
       cmds->addCommand("RegularStopAction:activate", "Activate the regular stop action", &myActivateCmdCB);
       cmds->addCommand("RegularStopAction:deactivate", "Deactivate the regular stop action", &myDeactivateCmdCB);
     }
+    if(drawings)
+      drawings->addDrawing(&myTrackDrawingData, "Line showing track of robot", &myGetTrackDrawingCB);
   }
   
-  void addCallback(ArRetFunctor<bool> *cb)
+  void setCallback(ArRetFunctor<bool> *cb)
   {
     // todo make it a callback list
     callback = cb;
+  }
+
+  void setDeactivatedCallback(ArFunctor *cb)
+  {
+    deactivatedCallback = cb;
   }
 
   virtual void activate() 
@@ -96,6 +112,9 @@ public:
     unlock();
     ArLog::log(ArLog::Normal, "RegularStopAction: Activated");
     ArAction::activate();
+    track.clear();
+    trackCounter = 0;
+    track.push_back(getRobot()->getPose());
     resume();
   }
 
@@ -103,6 +122,7 @@ public:
   {
     ArLog::log(ArLog::Normal, "RegularStopAction: Deactivated");
     ArAction::deactivate();
+    if(deactivatedCallback) deactivatedCallback->invoke();
   }
     
   void resume() 
@@ -153,6 +173,17 @@ public:
       desiredAction.setVel(0);
       desiredAction.setRotVel(0);
     }
+    
+    if(!stopped)
+    {
+      if(++trackCounter > 10)
+      {
+        trackCounter = 0;
+        track.push_back(getRobot()->getPose());
+        if((track.size() * (sizeof(ArTypes::Byte4)*2) ) + sizeof(ArTypes::Byte4) > ArNetPacket::MAX_DATA_LENGTH)
+          track.pop_front();
+      }
+    }
 
     unlock();
     return &desiredAction;
@@ -179,6 +210,26 @@ public:
     enabled = false;
     processConfig();
     unlock();
+  }
+
+protected:
+  void getTrackDrawingNetCallback(ArServerClient *client, ArNetPacket *reqPkt) 
+  {
+    ArNetPacket reply;
+    if(!enabled) return;
+    //{
+    //  reply.byte2ToBuf(0);
+    //  client->sendPacketUdp(&reply);
+    //  mySentPath = true;
+    //  return;
+   // }
+    reply.byte4ToBuf(track.size());
+    for(std::list<ArPose>::iterator i = track.begin(); i != track.end(); ++i)
+    {
+      reply.byte4ToBuf((int) i->getX());
+      reply.byte4ToBuf((int) i->getY());
+    }
+    client->sendPacketUdp(&reply);
   }
 };
 

@@ -926,16 +926,12 @@ int main(int argc, char **argv)
   
 
   // Create the RegularStopAction and add it to the path planning action group:
-  RegularStopAction regularStopAction(5000/*mm*/, NULL, "RegularStopAction", &commands);
+  RegularStopAction regularStopAction(3000/*mm*/, "RegularStopAction", &commands);
   pathTask.getPathPlanActionGroup()->addAction(&regularStopAction, 75);
 
 
   // Longer running asynchronous task:
-  ExamplePauseTask exampleTask(5.0/*sec*/, &robot, &regularStopAction, &popupServer);
-  stopCB = exampleTask.getStartCallback();
-
-  // Set the callback to call when it stops
-  regularStopAction.addCallback(stopCB);
+  ExamplePauseTask exampleTask(5.0/*sec*/, &robot, gps, &regularStopAction, &popupServer);
   
 
   /* Set up the possible modes for remote control from a client such as

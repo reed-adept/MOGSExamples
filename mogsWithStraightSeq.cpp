@@ -434,8 +434,9 @@ class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
 public:
   SimpleStraightPointSequenceModeExample(std::list<ArPose>& path, double speed, bool loop, ArServerBase *server, ArRobot *robot, ArServerHandlerCommands *cmds = NULL, ArServerInfoDrawings *drawings = NULL) :
     ArServerMode(robot, server, "SimpleStraightPointSequence"),
+    myPoints(path), 
     myNextPoint(path.begin()),
-    myPoints(path), myLoop(loop),
+    myLoop(loop),
     myGetPathDrawingCB(this, &SimpleStraightPointSequenceModeExample::getPathDrawingNetCallback),
     myActivateCmdCB(this, &SimpleStraightPointSequenceModeExample::activate),
     myDeactivateCmdCB(this, &SimpleStraightPointSequenceModeExample::deactivate),
@@ -1188,7 +1189,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   gpsLocTask.addLocalizationInitCommands(&commands);
   
   // Add some commands for manually creating map objects based on GPS positions:
-  GPSMapTools gpsMapTools(gps, &robot, &commands, &map, &serverMap);
+  //GPSMapTools gpsMapTools(gps, &robot, &commands, &map, &serverMap);
 
   // Add command to set simulated GPS position manually
   if(gpsConnector.getGPSType() == ArGPSConnector::Simulator)
@@ -1358,21 +1359,19 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
    * This is enabled/disabled via ArConfig parameters. (Robot Configuration in
    * mobileeyes) 
    */
-  ArRetFunctor<bool> *stopCB = NULL;
 
   // Simple immediate function call:
   //RobotPtr = &robot;
   //GlobalFixedRetFunctor<bool> printRobotPosCB(&printRobotPos, true);
+  // ArRetFunctor<bool> *stopCB = NULL;
   //stopCB = &printRobotPosCB;
   
   // Create the RegularStopAction and add it to the action group:
-  RegularStopAction regularStopAction(5000/*mm*/, NULL, "RegularStopAction", &commands);
+  RegularStopAction regularStopAction(2000/*mm*/, "RegularStopAction", &commands, &drawings);
   straightPointSeqMode.getActionGroup()->addAction(&regularStopAction, 75);
 
   // initiate a somewhat long running asynchronous task:
-  ExamplePauseTask exampleTask(5.0/*sec*/, &robot, &regularStopAction, &popupServer);
-  stopCB = exampleTask.getStartCallback();
-  regularStopAction.addCallback(stopCB);
+  ExamplePauseTask exampleTask(5.0/*sec*/, &robot, gps, &regularStopAction, &popupServer);
   
 
 
