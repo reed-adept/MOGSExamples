@@ -435,6 +435,7 @@ class SimpleStraightPointSequenceModeExample : public virtual ArServerMode
   ActionLimiterForwards myLimitAction;
   std::list<ArPose> track;
   unsigned int trackCounter;
+  char myGoingStatus[256];
 public:
   SimpleStraightPointSequenceModeExample(std::list<ArPose>& path, double speed, bool loop, ArServerBase *server, ArRobot *robot, ArServerHandlerCommands *cmds = NULL, ArServerInfoDrawings *drawings = NULL) :
     ArServerMode(robot, server, "SimpleStraightPointSequence"),
@@ -480,7 +481,7 @@ public:
     myGotoAction.setRobot(robot);
     myGotoAction.setCloseDist(25);
     myGotoAction.setTurnThreshold(30);
-    // TODO myGotoAction.setTurnSpeed();
+    myGotoAction.setTurnSpeed(20);
     // TODO myGotoAction.setAccel();
     // TODO myGotoAction.setDecel();
     myActionGroup.addAction(&myGotoAction, 10);
@@ -499,6 +500,7 @@ public:
     ArLog::log(ArLog::Normal, "SimpleStraightPointSequence: activating");
     if(!ArServerMode::baseActivate())
       return;
+    memset(myGoingStatus, 0, 256);
     chooseFirstPoint();
     setActivityTimeToNow();
     myActivating = true;
@@ -529,10 +531,9 @@ public:
   void chooseFirstPoint()
   {
     myNextPoint = myPoints.begin();
-    char buf[256];
-    snprintf(buf, 256, "first path point: %f, %f", myNextPoint->getX(), myNextPoint->getY());
-    ArLog::log(ArLog::Normal, "SimplePathFollow: %s", buf);
-    ArServerMode::setStatus(buf);
+    snprintf(myGoingStatus, 256, "first path point: %f, %f", myNextPoint->getX(), myNextPoint->getY());
+    ArLog::log(ArLog::Normal, "SimplePathFollow: %s", myGoingStatus);
+    ArServerMode::setStatus(myGoingStatus);
     mySentPath = false;
     myGotoAction.setGoal(*myNextPoint, false, false); // false for backwards, false to measure distance remaining to goal point rather than precalculating distance
     myGotoAction.activate();
@@ -556,10 +557,10 @@ public:
         return;
       }
     }
-    char buf[256];
-    snprintf(buf, 256, "next path point: %f, %f", myNextPoint->getX(), myNextPoint->getY());
-    ArLog::log(ArLog::Normal, "SimplePathFollow: %s", buf);
-    ArServerMode::setStatus(buf);
+    char myGoingStatus[256];
+    snprintf(myGoingStatus, 256, "next path point: %f, %f", myNextPoint->getX(), myNextPoint->getY());
+    ArLog::log(ArLog::Normal, "SimplePathFollow: %s", myGoingStatus);
+    ArServerMode::setStatus(myGoingStatus);
     mySentPath = false;
     myGotoAction.setGoal(*myNextPoint);
     myGotoAction.activate();
@@ -590,7 +591,7 @@ public:
     }
     else
     {
-      setStatus("Continuing");
+      setStatus(myGoingStatus);
     }
     
     ArRobot *robot = myGotoAction.getRobot();

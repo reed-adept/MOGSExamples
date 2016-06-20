@@ -108,10 +108,28 @@ public:
   /// Sets whether we're backing up there or not (set in the setGoals)
   bool getBacking(void) { return myBacking; }
   
+  /// If the angle at which the robot must rotate to face the goal point is
+  /// greater than @a threshAngle, turn in place rather than moving forward and
+  /// turning simultaneously.  This is useful when the goal is close to the robot
+  /// but the robot is facing away from the goal point.
   /// @warning if threshAngle is too small (smaller than about 20 deg) then
   /// the robot may not achieve that heading, and it could become stuck with no
-  /// movement.
+  /// movement. To set the speed used when turning in place,  use
+  /// setMaxTurnSpeed().
   void setTurnThreshold(double threshAngle) { myTurnThresh = threshAngle; }
+
+  /// Set speed used when turning in place (because angle difference is above
+  /// turn threshold, see setTurnThreshold()). If 0, use robot's default
+  /// HEAD speed, which is usually its maximum rotational velocity capability.
+  /// On some robots and for some applications this may be too fast, so you 
+  /// may want to reduce it here.
+  void setTurnSpeed(double speed) { myMaxTurnSpeed = speed; }
+
+  /// Set maximum rotational velocity allowed when adjusting heading while
+  /// also driving forward. If 0, use default.
+  /// Normally, you will want this to be the default or a high value, to
+  /// quickly correct any heading deviation while driving to the goal.
+  void setMaxRotVel(double rv) { myMaxRotVel = rv; }
 
 protected:
   AREXPORT virtual ArActionDesired *fire(ArActionDesired currentDesired);
@@ -134,6 +152,8 @@ protected:
   double myDistTravelled;
   ArPose myLastPose;
   double myTurnThresh;
+  double myMaxTurnSpeed;
+  double myMaxRotVel;
   
   enum State
   {

@@ -45,6 +45,8 @@ AREXPORT ActionGotoStraight::ActionGotoStraight(const char *name,
   myBacking = false;
   setCloseDist();
   myTurnThresh = 360;
+  myMaxTurnSpeed = 0;
+  myMaxRotVel = 0;
 }
 
 AREXPORT ActionGotoStraight::~ActionGotoStraight()
@@ -191,7 +193,17 @@ AREXPORT ArActionDesired *ActionGotoStraight::fire(ArActionDesired currentDesire
     if (myBacking)
       vel *= -1;
     myDesired.setVel(vel);
+    if(myMaxRotVel > ArMath::epsilon())
+      myDesired.setMaxRotVel(myMaxRotVel);
   }
+  else
+  {
+    // no forward motion until we are below myTurnThresh,
+    // also use different max speed setting.
+    if(myMaxTurnSpeed > ArMath::epsilon())
+      myDesired.setMaxRotVel(myMaxTurnSpeed);
+  }
+
   if (myPrinting)
     ArLog::log(ArLog::Normal, "dist %.0f angle %.0f angleDelta %.0f vel %.0f turnThresh %.0f desiredHeading %.0f desiredVel %.0f closeDist %.0f", 
 	       dist, angle, angleDelta, vel, myTurnThresh, myDesired.getHeading(), myDesired.getVel(), myCloseDist);
