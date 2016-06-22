@@ -28,6 +28,7 @@ Adept MobileRobots, 10 Columbia Drive, Amherst, NH 03031; +1-603-881-7960
 #include "ariaOSDef.h"
 #include "ActionGotoStraight.h"
 #include "ArRobot.h"
+#include <assert.h>
 
 #define DEBUG false // if true enables misc debug logging
 
@@ -76,7 +77,7 @@ AREXPORT void ActionGotoStraight::setGoal(ArPose goal, bool backToGoal,
   myBacking = backToGoal;
   myLastPose = myRobot->getPose();
   myDist = myRobot->getPose().findDistanceTo(goal);
-  myJustDist = true;
+  myJustDist = justDistance;
   myDistTravelled = 0;
 }
 
