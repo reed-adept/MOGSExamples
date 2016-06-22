@@ -62,33 +62,6 @@ const char* getGyroStatusString(ArRobot* robot)
   return "OK";
 }
 
-// This function is called from the ArRobot task thread on every robot update,
-// which is every 100ms.  You can check timers here and do any non-blocking
-// monitoring of I/O.  Any long-blocking operations must not be done in this
-// callback however, or it will impact the ArRobot task thread and
-// communications with the robot (use ArASyncTask to run a new thread instead.)
-void robotTaskExample(ArRobot* robot)
-{
-}
-
-// This function is called whenever a new goal is reached. It will be attached 
-// to the path planning task below in main() via ArPathPlanningTask::addGoalDoneCB()
-void goalDone(ArPose goalPos) //, ArPathPlanningTask *pathTask)
-{
-  ArLog::log(ArLog::Normal, "ARNL server example: goal reached");
-}
-
-// This function is called if pathplanning fails. It will be attached 
-// to the path planning task below in main() via
-// ArPathPlanningTask::addGoalFailedCB()
-void goalFailed(ArPose goalPos) //, ArPathPlanningTask *pathTask)
-{
-  ArLog::log(ArLog::Normal, "ARNL server example: goal failed");
-}
-
-// This function is called if localization fails. It will be attached 
-// to the localization task below in main() via
-// ArLocalizationTask::setFailedCallback()
 void locFailed(int n) //, ArLocalizationTask* locTask)
 {
   ArLog::log(ArLog::Normal, "ARNL server example: localization failed");
@@ -655,6 +628,9 @@ protected:
 
 };
 
+
+    
+
 // Program main function.
 int main(int argc, char **argv)
 {
@@ -682,11 +658,6 @@ int main(int argc, char **argv)
 
   // The robot object
   ArRobot robot;
-
-  // This is an example of a user task callback. This is called every ArRobot
-  // task cycle (every 100ms). The function is defined at the top of this file.
-  ArGlobalFunctor1<ArRobot*> robotTaskExampleCB(&robotTaskExample, &robot);
-  robot.addUserTask("arnlServerExampleTask", 10, &robotTaskExampleCB);
 
   // handle messages from robot controller firmware and log the contents
   robot.addPacketHandler(new ArGlobalRetFunctor1<bool, ArRobotPacket*>(&handleDebugMessage));
@@ -826,13 +797,7 @@ int main(int argc, char **argv)
     /* Create localization and path planning threads */
 
 
-  ArPathPlanningTask pathTask(&robot, NULL, /*&sonarDev,*/ &map);
-  ArGlobalFunctor1<ArPose> /*, ArPathPlanningTask*>*/ goalDoneCB(&goalDone); //, &pathTask);
-  pathTask.addGoalDoneCB(&goalDoneCB);
-
-  ArGlobalFunctor1<ArPose> /*, ArPathPlanningTask*>*/ goalFailedCB(&goalFailed); //, &pathTask);
-  pathTask.addGoalFailedCB(&goalFailedCB);
-
+  ArPathPlanningTask pathTask(&robot, NULL, &map);
 
   ArLog::log(ArLog::Normal, "Connecting to GPS...");
 
@@ -876,6 +841,7 @@ int main(int argc, char **argv)
 
   pathTask.addRangeDevice(laser, ArPathPlanningTask::BOTH);
 
+// TODO move this down after setting up serverinfogroup
     // Add the packet count to the Aria info strings (It will be included in
     // MobileEyes custom details so you can monitor whether the laser data is
     // being received correctly)
@@ -909,9 +875,6 @@ int main(int argc, char **argv)
   // Add IR range device to robot and path planning task (so it avoids obstacles
   // detected by this device)
   robot.lock();
-  ArIRs irs;
-  robot.addRangeDevice(&irs);
-  pathTask.addRangeDevice(&irs, ArPathPlanningTask::CURRENT);
 
   // Add bumpers range device to robot and path planning task (so it avoids obstacles
   // detected by this device)
@@ -1088,11 +1051,6 @@ int main(int argc, char **argv)
   // Add drive mode section to the configuration, and also some custom (simple) commands:
   modeRatioDrive.addToConfig(Aria::getConfig(), "Teleop settings");
   modeRatioDrive.addControlCommands(&commands);
-
-  // Wander mode (also prevent wandering if lost):
-  ArServerModeWander modeWander(&server, &robot);
-  ArActionLost actionLostWander(&gpsLocTask, &pathTask, &modeWander);
-  modeWander.getActionGroup()->addAction(&actionLostWander, 110);
 
   // Tool to log data periodically to a file
   ArDataLogger dataLogger(&robot, "datalog.txt");
@@ -1274,13 +1232,14 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   // of where the robot is between runs...  after we try and restore
   // from this file it will start saving the robot's pose into the
   // file
-  ArPoseStorage poseStorage(&robot);
+//  ArPoseStorage poseStorage(&robot);
+
   /// if we could restore the pose from then set the sim there (this
   /// won't do anything to the real robot)... if we couldn't restore
   /// the pose then just reset the position of the robot (which again
   /// won't do anything to the real robot)
-  if (poseStorage.restorePose("robotPose"))
-    serverLocHandler.setSimPose(robot.getPose());
+//  if (poseStorage.restorePose("robotPose"))
+//    serverLocHandler.setSimPose(robot.getPose());
   //else
  //   robot.com(ArCommands::SIM_RESET);
 
@@ -1373,7 +1332,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
     }
     path.push_back(obj->getPose());
   }
-  printf("found %d goals in map\n", path.size());
+  printf("found %lu goals in map\n", path.size());
   
   /* or:
   // positions outside mobilerobots building (see out6.map)
