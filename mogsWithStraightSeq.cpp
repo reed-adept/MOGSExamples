@@ -1316,6 +1316,8 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   /* Add a new mode that uses ArActionGotoStraight to drive mostly straight
    * towards a sequence of points.  Custom Commands are added to
    * activate/deactivate this mode. */
+  // TODO   do all of this before loading the config so we can get our saved
+  // parameters!
 
   std::list<ArPose> path;
 
@@ -1386,6 +1388,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   // ArRetFunctor<bool> *stopCB = NULL;
   //stopCB = &printRobotPosCB;
   
+
   // Create the RegularStopAction and add it to the action group:
   RegularStopAction regularStopAction(2000/*mm*/, "RegularStopAction", &commands, &drawings);
   straightPointSeqMode.getActionGroup()->addAction(&regularStopAction, 75);
