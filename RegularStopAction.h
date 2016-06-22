@@ -150,7 +150,8 @@ public:
       else
       {
         // should stop, set flag
-        ArLog::log(ArLog::Normal, "%s: Stopping...", getName());
+        if(!stopping)
+          ArLog::log(ArLog::Normal, "%s: Stopping...", getName());
         stopping = true;
       }
     }

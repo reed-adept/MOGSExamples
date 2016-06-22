@@ -638,7 +638,7 @@ int main(int argc, char **argv)
 
   // You can change default ArLog options in this call, but the settings in the parameter file
   // (arnl.p) which is loaded below (Aria::getConfig()->parseFile())  will override the options.
-  //ArLog::init(ArLog::File, ArLog::Normal, "log.txt", true, true);
+  ArLog::init(ArLog::File, ArLog::Normal, "log.txt", true, true);
 
   // Used to parse the command line arguments.
   ArArgumentParser parser(&argc, argv);
