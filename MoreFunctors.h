@@ -99,4 +99,30 @@ protected:
 };
 
 
+/*
+/// When invoked, call a method on an object and return true if the result
+/// equals the desired value.
+template <typename ObjT, typename RetT>
+class FunctorCheckConstMethodResult : virtual ArRetFunctor<bool>
+{
+protected:
+  RetT myCheckVal;
+  ArConstRetFunctorC<RetT, ObjT> myFunc;
+public:
+  FunctorCheckConstMethodResult(ObjT *obj, RetT (ObjT::*func)(void) const, const RetT& val) :
+    myCheckVal(val),
+    myFunc(obj, func)
+  {}
+
+  virtual bool invokeR()
+  {
+    return(myFunc.invokeR() == myCheckVal);
+  }
+
+  virtual void invoke() 
+  { // error
+  }
+};
+*/
+
 #endif
