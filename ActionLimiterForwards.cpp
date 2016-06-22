@@ -63,6 +63,7 @@ AREXPORT ActionLimiterForwards::ActionLimiterForwards(const char *name,
   myWidthRatio = widthRatio;
   myLastStopped = false;
   myLastSensorReadingDev = NULL;
+  myLogLevel = ArLog::Verbose;
 }
 
 AREXPORT ActionLimiterForwards::~ActionLimiterForwards()
@@ -118,7 +119,7 @@ ActionLimiterForwards::fire(ArActionDesired currentDesired)
     if(!myLastStopped)
     {
       if (printing) printf("Stopping\n");
-      ArLog::log(ArLog::Verbose, "%s: Stopping due to sensor reaoding", getName());
+      ArLog::log(myLogLevel, "%s: Stopping due to sensor reading from %s (%.0fmm at %d,%d)", getName(), myLastSensorReadingDev->getName(), myLastSensorReadingPos.getX(), myLastSensorReadingPos.getY());
     }
     myLastStopped = true;
     myDesired.setMaxVel(0);
@@ -128,7 +129,7 @@ ActionLimiterForwards::fire(ArActionDesired currentDesired)
   if(myLastStopped)
   {
     if (printing) printf("Going\n");
-    ArLog::log(ArLog::Verbose, "%s: Allowing motion", getName());
+    ArLog::log(myLogLevel, "%s: Allowing motion", getName());
   } 
 
   myLastStopped = false;

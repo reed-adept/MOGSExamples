@@ -67,6 +67,7 @@ public:
   bool getStopped() const { return myLastStopped; } 
   ArPose getLastSensorReadingPos() const { return myLastSensorReadingPos; } 
   const ArRangeDevice* getLastSensorReadingDevice() const { return myLastSensorReadingDev; } 
+  void setLogLevel(ArLog::LogLevel l) { myLogLevel = l; }
 protected:
   bool myLastStopped;
   double myStopDist;
@@ -76,6 +77,7 @@ protected:
   ArActionDesired myDesired;
   ArPose myLastSensorReadingPos;
   const ArRangeDevice *myLastSensorReadingDev;
+  ArLog::LogLevel myLogLevel;
 };
 
 #endif // ARACTIONSPEEDLIMITER_H

@@ -427,7 +427,7 @@ public:
     myActionGroup(robot),
     myPathDrawingData("polyLine", ArColor(150, 200, 240), 4, 49, 200, "DefaultOn"),
     myTrackDrawingData("polyLine", ArColor(200, 200, 200), 30, 48, 200, "DefaultOn"),
-    myLimitAction("speed limiter", 1000, 2000, 200, 2),
+    myLimitAction("speed limiter", 2000, 5000, 200, 2),
     trackCounter(0)
   {
     
@@ -458,10 +458,9 @@ public:
     // TODO myGotoAction.setAccel();
     // TODO myGotoAction.setDecel();
     myActionGroup.addAction(&myGotoAction, 10);
-    
+
+    myLimitAction.setLogLevel(ArLog::Normal);
     myActionGroup.addAction(&myLimitAction, 500);
-
-
   }
 
   /// The obstacle motion limiter will be in the action group at priority 500.  The goto action is at priority 10.
