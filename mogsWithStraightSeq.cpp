@@ -530,7 +530,6 @@ public:
         return;
       }
     }
-    char myGoingStatus[256];
     snprintf(myGoingStatus, 256, "next path point: %f, %f", myNextPoint->getX(), myNextPoint->getY());
     ArLog::log(ArLog::Normal, "SimplePathFollow: %s", myGoingStatus);
     ArServerMode::setStatus(myGoingStatus);
