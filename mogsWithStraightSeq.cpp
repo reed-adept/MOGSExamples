@@ -1369,8 +1369,8 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   
 
 // enable to prevent touring if lost:
-//  ArActionLost actionLostStraightTour(&gpsLocTask, &pathTask, &straightPointSeqMode);
-//  straightPointSeqMode.getActionGroup()->addAction(&actionLostStraightTour, 900);
+  ArActionLost actionLostStraightTour(&gpsLocTask, &pathTask, &straightPointSeqMode);
+  straightPointSeqMode.getActionGroup()->addAction(&actionLostStraightTour, 900);
 
 
   /* Add an action to the path planning action group that will cause the robot
