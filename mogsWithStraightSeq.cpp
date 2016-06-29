@@ -1,13 +1,13 @@
 /*
 
 Copyright (c) 2014-2015 Adept Technology Inc.
-All rights reserved.  
+All rights reserved.Â  
 
 Redistribution of this example source code, with or without modification, is 
-permitted provided that the following conditions are met:   
--    Redistributions must retain the above copyright notice, 
-     this list of conditions and the following disclaimer.  
--    Redistributions must be in source code form only
+permitted provided that the following conditions are met:Â Â  
+-Â Â Â  Redistributions must retain the above copyright notice, 
+     this list of conditions and the following disclaimer.Â  
+-Â  Â  Redistributions must be in source code form only
 
 The information in this document is subject to change without notice and should
 not be construed as a commitment by Adept Technology, Inc.
@@ -1416,7 +1416,7 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   // inhibit motion if GPS Pose (pose in map coordinates translated from GPS
   // latitude and longitude) is more than 1m.
   // a popup is displayed for user to reset. true flag also disables motors.
-  ArRetFunctorC<ArPoseWithTime, ArGPSLocalizationTask> gpsPoseFunctor(&gpsLocTask, &ArGPSLocalizationTask::getLastGPSPose);
+  //ArRetFunctorC<ArPoseWithTime, ArGPSLocalizationTask> gpsPoseFunctor(&gpsLocTask, &ArGPSLocalizationTask::getLastGPSPose);
   // TODO ArActionDetectPositionJump actionDetectPositionJump(&robot, &gpsPoseFunctor, 0.00002, &popupServer, true);
   // TODO need versions of DetectPositionJump that take ArPose, Ar3DPoint, ArPoseWithTime
   // TODO add hook so that it's reset if MOGS is initialized or other event
