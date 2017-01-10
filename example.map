@@ -35,26 +35,19 @@ Cairn: ForbiddenArea 0 0 68.067165 "" ICON "" -5585 5729 3028 8683
 Cairn: Measure -5228 -4273 0.000000 "" ICON "" -5228 -4273 -1902 -5799
 Cairn: Measure -4302 333 0.000000 "" ICON "" -4302 333 664 -2086
 Cairn: Measure -4135 -990 0.000000 "" ICON "" -4135 -990 -2860 -1562
-Cairn: PreferredLine -4109 -995 0.000000 "" ICON "New PreferredLine" -4109 -995 -248 9262
 Cairn: Goal -4109 -979 0.000000 "" ICON "1"
 Cairn: Goal -3693 -6553 0.000000 "" ICON "inside"
-Cairn: PreferredLine -2920 -1495 0.000000 "" ICON "New PreferredLine1" -2920 -1495 622 7865
 Cairn: ForbiddenLine -2868 -10590 0.000000 "" ICON "" -2868 -10590 -7639 -8075
 Cairn: Goal -2864 -1562 0.000000 "" ICON "3"
-Cairn: PreferredLine -2243 -1783 0.000000 "" ICON "0000000" -2243 -1783 -2970 -1605
-Cairn: PreferredLine -1425 -1532 0.000000 "" ICON "New PreferredLine2" -1425 -1532 2431 8164
 Cairn: Measure -1409 8264 0.000000 "" ICON "" -1409 8264 -4561 305
 Cairn: Measure -1316 8321 0.000000 "" ICON "" -1316 8321 3745 6156
 Cairn: Goal -430 -2787 67.300000 "" ICON "5"
 Cairn: Measure -419 -2823 0.000000 "" ICON "" -419 -2823 -1661 -2161
 Cairn: Goal -284 9250 0.000000 "" ICON "end2"
-Cairn: PreferredLine -272 9172 0.000000 "" ICON "New PreferredLine00" -272 9172 445 8673
 Cairn: ForbiddenLine 66 -6840 0.000000 "" ICON "" 66 -6840 -11524 -26834
 Cairn: Measure 88 -227 0.000000 "" ICON "" 88 -227 -2398 -5565
 Cairn: RobotHome 119 -289 -114.579698 "" ICON ""
-Cairn: PreferredLine 2454 8137 0.000000 "" ICON "New PreferredLine0000" 2454 8137 3098 7682
 Cairn: Goal 2495 8187 0.000000 "" ICON "end4"
-Cairn: PreferredLine 3237 6929 0.000000 "" ICON "New PreferredLine9" 3237 6929 -416 -2797
 Cairn: ForbiddenLine 8231 -9840 0.000000 "" ICON "" 8231 -9840 16879 9236
 LINES
 -84171 59112 -84400 61631
