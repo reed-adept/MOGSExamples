@@ -26,6 +26,11 @@ public:
     ArLog::log(ArLog::Normal, "RecenterWheels: will check goals with name beginning \"%s\"", goalNamePrefix.c_str());
   }
 
+  ~RecenterWheels()
+  {
+    myPathTask->remGoalDoneCB(&myGoalCB);
+  }
+
 private:
   void goalReached(ArPose pose)
   {
