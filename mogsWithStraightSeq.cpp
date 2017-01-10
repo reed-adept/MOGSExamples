@@ -34,6 +34,7 @@ in LICENSE.txt (refer to LICENSE.txt for details).
 #include "ActionLimiterForwards.h"
 #include "RegularStopAction.h"
 #include "ExamplePauseTask.h"
+#include "RecenterWheels.h"
 
 #include <assert.h>
 
@@ -1453,6 +1454,9 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   // clearsDirectMotion() and then sends stop(), if you want to bypass the
   // ArAction system entirely.
 
+
+  // Recenter wheels at any goal that begins with "end"
+  RecenterWheels recenter(&pathTask, &robot, "end");
   
 
   // Start the networking server's thread
