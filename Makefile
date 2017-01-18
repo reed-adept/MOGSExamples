@@ -1,7 +1,8 @@
 
-TARGETS=mogsWithStraightSeq mogsServerWithStoppingAction
+TARGETS=arnlMogsSwitchServer mogsWithStraightSeq mogsServerWithStoppingAction 
 
-SOURCES=mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp ActionLimiterForwards.cpp ActionGotoStraight.h ActionLimiterForwards.h ExamplePauseTask.h GPSMapTools.h MoreFunctors.h RegularStopAction.h
+# Just used to generate all dependencies:
+SOURCES=arnlMogsSwitchServer.cpp mogsServerWithStoppingAction.cpp mogsWithStraightSeq.cpp ActionGotoStraight.cpp GPSMapTools.cpp ActionLimiterForwards.cpp ActionGotoStraight.h ActionLimiterForwards.h ExamplePauseTask.h GPSMapTools.h MoreFunctors.h RegularStopAction.h RecenterWheels.h 
 
 ifndef ARNL
 ARNL:=/usr/local/Arnl
@@ -22,6 +23,9 @@ CXX:=c++
 endif
 
 all: $(TARGETS)
+
+arnlMogsSwitchServer: arnlMogsSwitchServer.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ -lArnl $(LINK)
 
 mogsWithStraightSeq: mogsWithStraightSeq.o ActionGotoStraight.o GPSMapTools.o ActionLimiterForwards.o
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)

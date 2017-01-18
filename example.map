@@ -33,10 +33,11 @@ Cairn: ForbiddenLine -10420 -25055 0.000000 "" ICON "" -10420 -25055 -21031 -167
 Cairn: ForbiddenLine -5680 -4008 0.000000 "" ICON "" -5680 -4008 -9378 -11958
 Cairn: ForbiddenArea 0 0 68.067165 "" ICON "" -5585 5729 3028 8683
 Cairn: Measure -5228 -4273 0.000000 "" ICON "" -5228 -4273 -1902 -5799
+Cairn: Goal -5032 -6054 0.000000 "" ICON "inside"
 Cairn: Measure -4302 333 0.000000 "" ICON "" -4302 333 664 -2086
 Cairn: Measure -4135 -990 0.000000 "" ICON "" -4135 -990 -2860 -1562
 Cairn: Goal -4109 -979 0.000000 "" ICON "1"
-Cairn: Goal -3693 -6553 0.000000 "" ICON "inside"
+Cairn: Goal -3437 -4017 0.000000 "" ICON "door"
 Cairn: ForbiddenLine -2868 -10590 0.000000 "" ICON "" -2868 -10590 -7639 -8075
 Cairn: Goal -2864 -1562 0.000000 "" ICON "3"
 Cairn: Measure -1409 8264 0.000000 "" ICON "" -1409 8264 -4561 305
