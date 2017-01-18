@@ -34,7 +34,6 @@ public:
 private:
   void goalReached(ArPose pose)
   {
-    printf("reached %s\n", myPathTask->getCurrentGoalName().c_str());
     const std::string goalname = myPathTask->getCurrentGoalName();
     if(goalname.compare(0, myGoalNamePrefix.size(), myGoalNamePrefix) == 0)
     {
