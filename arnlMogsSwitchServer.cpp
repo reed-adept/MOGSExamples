@@ -34,12 +34,12 @@ in LICENSE.txt (refer to LICENSE.txt for details).
 //#include "ArGPSMapTools.h"
 #include "ArSystemStatus.h"
 
-
+#include <assert.h>
 
 #include <string>
 #include <map>
 
-/** This class switches between multiple localization tasks.
+/** This class switches between laser and GPS localization tasks.
     This class lets you deactivate a localization task and activate another from
     some external command or trigger (e.g. user network command, at a specific goal,
     etc.)
@@ -48,11 +48,11 @@ in LICENSE.txt (refer to LICENSE.txt for details).
     multiple localization methods active at the same time, and combines their
     results, and therefore implements the ArBaseLocalizationTask interface.
 
-    When switching to a new localization task using the switchToLoc() method,
+    When switching to a new localization 
     it will block until the new localization task is not lost, or it times
     out (if a timeout was given).
 */
-class ArLocalizationSwitch : public virtual ArASyncTask
+class LocSwitcher : public virtual ArASyncTask
 {
 
 /* XXX RH TODO add these
@@ -86,72 +86,38 @@ class ArLocalizationSwitch : public virtual ArASyncTask
   handlerMapping.addMappingEndCallback(actionLostRatioDrive.getEnableCB());
   handlerMapping.addMappingEndCallback(actionLostWander.getEnableCB());
 
-  // Provides localization info and allows the client (MobileEyes) to relocalize at a given
-  // pose:
-  ArServerInfoLocalization serverInfoLocalization(&server, &robot, &locTask);
-  ArServerHandlerLocalization serverLocHandler(&server, &robot, &locTask);
 */
 
-// XXX TODO show in custom details which is active XXX 
-
 public:
-  ArLocalizationSwitch();
-  void /*ArFunctorC<ArLocalizationSwitch, const std::string&, int>*/ addLoc(ArBaseLocalizationTask *newLoc, const std::string& name, ArFunctor *activateFunc = 0);
-  void remLoc(const std::string& name);
-  bool switchToLoc(const std::string& name, int timeoutSecs = -1);
-  void switchToLocAsync(const std::string& name);
-  void switchToLoc_NR(std::string name) { switchToLoc(name, -1); }
-  void switchToLocAsync_NR(std::string name) { switchToLocAsync(name); }
-  bool waitForLocalized(int timeoutSecs = -1);
-  bool waitForLocIdle(int timeoutSecs = -1);
+  LocSwitcher(ArRobot *robot, ArLocalizationTask *laserLoc, ArGPSLocalizationTask *gpsLoc, ArServerHandlerCommands *cmdSrv);
+  ~LocSwitcher();
+  bool switchToLaser(int timeoutSecs = -1);
+  bool switchToGPS(int timeoutSecs = -1);
+  void switchToLaserAsync();
+  void switchToGPSAsync();
 
   ArBaseLocalizationTask* getActiveLoc()
   {
-    if(myActiveLoc == myLocs.end())
-      return 0;
-    return myActiveLoc->second.locTask;
-  }
-
-  /// Deactivate the currently activated localization task
-  bool deactivateLoc(int timeoutSecs = -1);
-
-
-  void setActiveLoc(const std::string& name)
-  {
-    myActiveLoc = myLocs.find(name);
-    ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Set active localization to %s", name.c_str());
+    return myActiveLoc;
   }
 
   std::string getActiveLocName()
   {
-    if(myActiveLoc == myLocs.end())
-      return "None";
-    return myActiveLoc->second.name;
+    return myActiveLoc->getShortName();
   }
-
-  /** Adds ArNetworking user commands (simple string commands) for each
-   * previously added localization method, and saves @a cmdSrv, to which
-   * commands for any subsequently added localization method is added.  */
-  void addNetCommands(ArServerHandlerCommands *cmdSrv);
 
 private:
   const static int ourDefaultTimeout; ///< secs
-  struct LocTask
-  {
-    std::string name;
-    ArBaseLocalizationTask *locTask;
-    ArFunctor *activateFunc;
-    LocTask(const std::string &_n, ArBaseLocalizationTask *_lt, ArFunctor *_af)
-:
-      name(_n), locTask(_lt), activateFunc(_af)
-    {}
-  };
-  std::map<std::string, LocTask> myLocs;
-  std::map<std::string, LocTask>::iterator myActiveLoc;
+  ArRobot *myRobot;
+  ArLocalizationTask *myLaserLoc;
+  ArGPSLocalizationTask *myGPSLoc;
+  ArBaseLocalizationTask *myActiveLoc;
   ArServerHandlerCommands *myCommandServer;
-  void addNetCommand(const LocTask& lt);
+  ArBaseLocalizationTask * myNextLoc;
 
-  std::string myNextAsyncActiveLocName;
+  bool waitForLocalized(int timeoutSecs = -1);
+  bool waitForLocIdle(int timeoutSecs = -1);
+
   virtual void *runThread(void *arg);
 };
 
@@ -205,9 +171,9 @@ public:
     myRobot->stop();
     ArUtil::sleep(250);
     ArPose p = myRobot->getPose();
-    ArLog::log(ArLog::Normal, "ReLocalizer: reinitializing laser localization at (%.2f, %.2f, %.2f)", p.getX(), p.getY(), p.getTh());
-    myLocTask->setRobotPose(myRobot->getPose());
     myRobot->unlock();
+    ArLog::log(ArLog::Normal, "ReLocalizer: reinitializing laser localization at (%.2f, %.2f, %.2f)", p.getX(), p.getY(), p.getTh());
+    myLocTask->setRobotPose(p);
     //reinitializeLocalization(myRobot, myLocServer);
   }
 };
@@ -709,7 +675,7 @@ int main(int argc, char **argv)
 
     /* Create localization and path planning threads */
 
-  ArLocalizationSwitch locSwitch;
+
   ArPathPlanningTask pathTask(&robot, &sonarDev, &map);
 //  pathPlanningTask = &pathTask;
 
@@ -885,6 +851,12 @@ int main(int argc, char **argv)
   serverInfoPath.addSearchRectangleDrawing(&drawings);
   serverInfoPath.addControlCommands(&commands);
 
+  // Enables the relocalization tool in MobileEyes:
+  // In this example, this will only work with laser localisation (locTask),
+  // not GPS.
+  ArServerInfoLocalization serverInfoLocalization(&server, &robot, &locTask);
+  ArServerHandlerLocalization serverLocHandler(&server, &robot, &locTask);
+
 
   // Provide the map to the client (and related controls):
   ArServerHandlerMap serverMap(&server, &map);
@@ -973,8 +945,6 @@ int main(int argc, char **argv)
   // and Custom Details in the View menu of MobileEyes.)
 
 
-  // active loc name from switcher
-  Aria::getInfoGroup()->addStringString("Current Localization", 10, new ArRetFunctorC<std::string, ArLocalizationSwitch>(&locSwitch, &ArLocalizationSwitch::getActiveLocName));
 
   // loc states
   Aria::getInfoGroup()->addStringString("Laser Loc Status", 10, new ArRetFunctorC<std::string, ArLocalizationTask>(&locTask, &ArLocalizationTask::getStateName));
@@ -1318,14 +1288,10 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   ArLog::log(ArLog::Normal, "See the ARNL README.txt for more information");
   ArLog::log(ArLog::Normal, "");
 
-  // Set up localization switcher
-  ReLocalizer reloc(&robot, &locTask, &serverLocHandler);
-  ArFunctorC<ReLocalizer> initLocCB(&reloc, &ReLocalizer::reloc);
-  locSwitch.addLoc(&locTask, "Laser", &initLocCB);
-  locSwitch.addLoc(&gpsLocTask, "GPS"); // TODO add callback that waits
-  locSwitch.addNetCommands(&commands);
+  // Set up localization switcher. laser should start out active.
   gpsLocTask.setIdleFlag(true);
-  locSwitch.setActiveLoc("Laser");
+  LocSwitcher locSwitch(&robot, &locTask, &gpsLocTask, &commands);
+  Aria::getInfoGroup()->addStringString("Current Localization", 10, new ArRetFunctorC<std::string, LocSwitcher>(&locSwitch, &LocSwitcher::getActiveLocName));
 
   // Do an initial localization of the robot. ARNL and SONARNL try all the home points
   // in the map, as well as the robot's current odometric position, as possible
@@ -1359,136 +1325,154 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
 
 
 
-const int ArLocalizationSwitch::ourDefaultTimeout = 20; // secs
+const int LocSwitcher::ourDefaultTimeout = 20; // secs
 
-ArLocalizationSwitch::ArLocalizationSwitch() : 
-  myActiveLoc(myLocs.end()),
-  myCommandServer(0)
+LocSwitcher::LocSwitcher(ArRobot *robot, ArLocalizationTask *laserLoc, ArGPSLocalizationTask *gpsLoc, ArServerHandlerCommands* cmdSrv = 0) : 
+  myRobot(robot),
+  myLaserLoc(laserLoc),
+  myGPSLoc(gpsLoc),
+  myActiveLoc(laserLoc),
+  myCommandServer(cmdSrv)
 {
+  if(cmdSrv)
+  {
+    cmdSrv->addCommand("Switch To Laser Localization", "Switch To Laser Localization", 
+      new ArRetFunctor1C<bool, LocSwitcher, int>(this, &LocSwitcher::switchToLaser, -1));
+    cmdSrv->addCommand("Switch To GPS Localization", "Switch To GPS Localization", 
+      new ArRetFunctor1C<bool, LocSwitcher, int>(this, &LocSwitcher::switchToGPS, -1));
+    // Note memory leak  from allocating functor objects, these are not deleted,
+    // only clreate one LocSwither.
+  }
 }
 
-void /*ArFunctorC<ArLocalizationSwitch>*/
-ArLocalizationSwitch::addLoc(ArBaseLocalizationTask *newLoc, const std::string&
-name, ArFunctor *activateFunc)
+LocSwitcher::~LocSwitcher()
 {
-  LocTask lt(name, newLoc, activateFunc);
-  myLocs.insert(std::map<std::string, LocTask>::value_type(name, lt));
-  //return ArFunctor2C<ArLocalizationSwitch, const std::string&, int>(this, &ArLocalizationSwitch::switchToLoc, name, ourDefaultTimeout);
-  addNetCommand(lt);
+  // TODO need to remove commands to avoid invalid pointers but // // ServerHandlerCommands doesn't have remCommand().
+  if(myCommandServer)
+  {
+    //myCommandServer->remCommand("Switch To Laser Localization");
+    //myCommandServer->remCommand("Switch To GPS Localization");
+  }
+  // TODO cancel any async threads
 }
 
-void ArLocalizationSwitch::remLoc(const std::string& name)
+bool LocSwitcher::switchToLaser(int timeoutSecs)
 {
-  if(myActiveLoc != myLocs.end() && myActiveLoc->first == name)
-    deactivateLoc();
-  myLocs.erase(name);
-}
+  if(myActiveLoc == myLaserLoc) return true;
+  if(myActiveLoc == 0) return false;
+  assert(myActiveLoc == myGPSLoc);
 
-bool ArLocalizationSwitch::switchToLoc(const std::string& name, int timeoutSecs)
-{
-  if(!deactivateLoc(timeoutSecs)) return false;
-  setActiveLoc(name);
-  if(myActiveLoc == myLocs.end())
-    return false;
-  ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Activating %s...", name.c_str());
-  myActiveLoc->second.locTask->setLocalizationIdle(false);
-  if(myActiveLoc->second.activateFunc)
-    myActiveLoc->second.activateFunc->invoke();
+  // stop robot
+  myRobot->lock();
+  myRobot->stop();
+  myRobot->unlock();
+  ArUtil::sleep(250);
+
+  // deactivate GPS
+  ArLog::log(ArLog::Normal, "LocSwitcher: Deactivating GPS...");
+  myGPSLoc->setLocalizationIdle(true);
+  waitForLocIdle(timeoutSecs);
+
+  // activate Laser
+  ArLog::log(ArLog::Normal, "LocSwitcher: Activating Laser...");
+  myLaserLoc->setLocalizationIdle(false);
+  myRobot->lock();
+  ArPose p = myRobot->getPose();
+  myRobot->unlock();
+  ArLog::log(ArLog::Normal, "LocSwitcher: reinitializing laser localization at (%.2f, %.2f, %.2f)", p.getX(), p.getY(), p.getTh());
+  myLaserLoc->setRobotPose(p);
+  myActiveLoc = myLaserLoc;
   return waitForLocalized();
 }
 
-bool ArLocalizationSwitch::waitForLocalized(int timeoutSecs)
+
+bool LocSwitcher::switchToGPS(int timeoutSecs)
 {
+  if(myActiveLoc == myGPSLoc) return true;
+  if(myActiveLoc == 0) return false;
+  assert(myActiveLoc == myLaserLoc);
+
+  // stop robot
+  myRobot->lock();
+  myRobot->stop();
+  myRobot->unlock();
+  ArUtil::sleep(250);
+
+  // deactivate Laser
+  ArLog::log(ArLog::Normal, "LocSwitcher: Deactivating Laser...");
+  myLaserLoc->setLocalizationIdle(true);
+  waitForLocIdle(timeoutSecs);
+
+  // activate GPS
+  ArLog::log(ArLog::Normal, "LocSwitcher: Activating GPS...");
+  myGPSLoc->setLocalizationIdle(false);
+  return waitForLocalized();
+}
+
+bool LocSwitcher::waitForLocalized(int timeoutSecs)
+{
+  // todo check for thread cancellation
   if(timeoutSecs < 0) timeoutSecs = ourDefaultTimeout;
   ArTime start;
-  ArBaseLocalizationTask *loc = myActiveLoc->second.locTask;
-  std::string name = myActiveLoc->second.name;
+  ArBaseLocalizationTask *loc = myActiveLoc;
+  std::string name = loc->getShortName();
   while(loc->getRobotIsLostFlag())
   {
     if(start.secSince() > timeoutSecs)
     {
-      ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Error: Timeout waiting for %s (%s) to localize (%d sec).", name.c_str(), loc->getShortName(), start.secSince());
+      ArLog::log(ArLog::Normal, "LocSwitcher: Error: Timeout waiting for %s (%s) to localize (%d sec).", name.c_str(), loc->getShortName(), start.secSince());
       return false;
     }
-    ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Waiting for %s (%s) to localize...", name.c_str(), loc->getShortName());
+    ArLog::log(ArLog::Normal, "LocSwitcher: Waiting for %s (%s) to localize...", name.c_str(), loc->getShortName());
     ArUtil::sleep(2000);
   }
-  ArLog::log(ArLog::Normal, "ArLocalizationSwitch: %s is now localized", name.c_str());
+  ArLog::log(ArLog::Normal, "LocSwitcher: %s is now localized", name.c_str());
   return true;
 }
 
-void ArLocalizationSwitch::switchToLocAsync(const std::string& name)
+void LocSwitcher::switchToLaserAsync()
 {
   // TODO cancel another thread if running and wait for it
-  myNextAsyncActiveLocName = name;
+  myNextLoc = myLaserLoc;
   runAsync();
 }
 
-void *ArLocalizationSwitch::runThread(void*)
+void LocSwitcher::switchToGPSAsync()
+{
+  // TODO cancel another thread if running and wait for it
+  myNextLoc = myGPSLoc;
+  runAsync();
+}
+
+void *LocSwitcher::runThread(void*)
 {
   // TODO check for thread cancellation
-  const std::string& name = myNextAsyncActiveLocName;
-  if(!switchToLoc(name))
-    ArLog::log(ArLog::Terse, "ArLocalizationSwitch: Warning: failed to switch to %s", name.c_str());
-/*
-  if(!deactivateLoc()) return 0;
-  setActiveLoc(name);
-  if(myActiveLoc == myLocs.end())
-  {
-    return 0;
-  }
-  //ArBaseLocalizationTask *loc = myActiveLoc->second.locTask;
-  ArFunctor *activateFunc = myActiveLoc->second.activateFunc;
-  if(activateFunc)
-    activateFunc->invoke();
-*/
+  if(myNextLoc == myLaserLoc)
+    switchToLaser();
+  else if(myNextLoc == myGPSLoc)
+    switchToGPS();
   return 0;
 }
 
-bool ArLocalizationSwitch::deactivateLoc(int timeoutSecs)
-{
-  if(myActiveLoc == myLocs.end())
-    return true;
-  ArBaseLocalizationTask *loc = myActiveLoc->second.locTask;
-  std::string name = myActiveLoc->second.name;
-  ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Deactivating %s...", name.c_str());
-  loc->setLocalizationIdle(true);
-  return waitForLocIdle(timeoutSecs);
-}
 
-bool ArLocalizationSwitch::waitForLocIdle(int timeoutSecs)
+bool LocSwitcher::waitForLocIdle(int timeoutSecs)
 {
+  // todo check for thread cancellation
   if(timeoutSecs < 0) timeoutSecs = 10;
   ArTime start;
-  ArBaseLocalizationTask *loc = myActiveLoc->second.locTask;
-  const std::string& name = myActiveLoc->second.name;
+  ArBaseLocalizationTask *loc = myActiveLoc;
+  const std::string& name = loc->getShortName();
   while(!loc->getIdleFlag())
   {
     if(start.secSince() > timeoutSecs)
     {
-      ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Error: Timeout waiting for %s (%s) to become idle (%d sec).", name.c_str(), loc->getShortName(), start.secSince());
+      ArLog::log(ArLog::Normal, "LocSwitcher: Error: Timeout waiting for %s (%s) to become idle (%d sec).", name.c_str(), loc->getShortName(), start.secSince());
       return false;
     }
-    ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Waiting for %s (%s) to become idle...", name.c_str(), loc->getShortName());
+    ArLog::log(ArLog::Normal, "LocSwitcher: Waiting for %s (%s) to become idle...", name.c_str(), loc->getShortName());
     ArUtil::sleep(500);
   }
-    ArLog::log(ArLog::Normal, "ArLocalizationSwitch: %s (%s) is now idle (inactive).", name.c_str(), loc->getShortName());
+    ArLog::log(ArLog::Normal, "LocSwitcher: %s (%s) is now idle (inactive).", name.c_str(), loc->getShortName());
   return true;
 }
 
-void ArLocalizationSwitch::addNetCommands(ArServerHandlerCommands *cmdSrv)
-{
-  myCommandServer = cmdSrv;
-  for(std::map<std::string, LocTask>::const_iterator i = myLocs.begin(); i != myLocs.end(); ++i)
-    addNetCommand(i->second);
-}
-
-void ArLocalizationSwitch::addNetCommand(const LocTask& lt)
-{
-  if(!myCommandServer) return;
-  std::string cmdname("LocSwitch:");
-  cmdname += lt.name;
-  ArLog::log(ArLog::Normal, "ArLocalizationSwitch: Adding command %s to net commands service", cmdname.c_str());
-  myCommandServer->addCommand(cmdname.c_str(), "Switch to this localization method", new ArFunctor1C<ArLocalizationSwitch, std::string>(this, &ArLocalizationSwitch::switchToLocAsync_NR, lt.name));
-      // XXX memory leak if this command is ever removed from command server
-}
