@@ -85,6 +85,11 @@ class ArLocalizationSwitch : public virtual ArASyncTask
   handlerMapping.addMappingEndCallback(actionLostPath.getEnableCB());
   handlerMapping.addMappingEndCallback(actionLostRatioDrive.getEnableCB());
   handlerMapping.addMappingEndCallback(actionLostWander.getEnableCB());
+
+  // Provides localization info and allows the client (MobileEyes) to relocalize at a given
+  // pose:
+  ArServerInfoLocalization serverInfoLocalization(&server, &robot, &locTask);
+  ArServerHandlerLocalization serverLocHandler(&server, &robot, &locTask);
 */
 
 // XXX TODO show in custom details which is active XXX 
@@ -881,16 +886,6 @@ int main(int argc, char **argv)
   serverInfoPath.addSearchRectangleDrawing(&drawings);
   serverInfoPath.addControlCommands(&commands);
 
-  // Provides localization info and allows the client (MobileEyes) to relocalize at a given
-  // pose:
-  ArServerInfoLocalization serverInfoLocalization(&server, &robot, &locTask);
-  ArServerHandlerLocalization serverLocHandler(&server, &robot, &locTask);
-
-  // If you're using MobileSim, ArServerHandlerLocalization sends it a command
-  // to move the robot's true pose if you manually do a localization through
-  // MobileEyes.  To disable that behavior, use this constructor call instead:
-  // ArServerHandlerLocalization serverLocHandler(&server, &robot, true, false);
-  // The fifth argument determines whether to send the command to MobileSim.
 
   // Provide the map to the client (and related controls):
   ArServerHandlerMap serverMap(&server, &map);
