@@ -12,9 +12,11 @@ LFLAGS:=-L$(ARNL)/lib
 
 LINK:=-lMogs -lBaseArnl -lArNetworkingForArnl -lAriaForArnl -ldl -lrt -lm -lpthread
 
+STATICLINK:=$(ARNL)/lib/libMogs.a $(ARNL)/lib/libBaseArnl.a $(ARNL)/lib/libArNetworkingForArnl.a $(ARNL)/lib/libAriaForArnl.a  -ldl -lrt -lm -lpthread
+
 INCLUDE:=-I$(ARNL)/include -I$(ARNL)/include/Aria -I$(ARNL)/include/ArNetworking
 
-CXXFLAGS:=-fPIC -g -Wall -D_REENTRANT
+CXXFLAGS:=-fPIC -g -Wall -D_REENTRANT -O2
 
 OBJ:=$(patsubst %.c,%.o,$(patsubst %.cc,%.o,$(patsubst %.cpp,%.o,$(patsubst %.h,,$(patsubst %.hh,,$(SOURCES))))))
 
@@ -26,6 +28,10 @@ all: $(TARGETS)
 
 arnlMogsSwitchServer: arnlMogsSwitchServer.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ -lArnl $(LINK)
+
+arnlMogsSwitchServerStatic: arnlMogsSwitchServer.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(ARNL)/lib/libArnl.a $(STATICLINK)
+	strip $@
 
 mogsWithStraightSeq: mogsWithStraightSeq.o ActionGotoStraight.o GPSMapTools.o ActionLimiterForwards.o
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(LFLAGS) -o $@ $^ $(LINK)
