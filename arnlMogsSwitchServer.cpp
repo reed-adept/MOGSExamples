@@ -55,42 +55,15 @@ in LICENSE.txt (refer to LICENSE.txt for details).
 class LocSwitcher : public virtual ArASyncTask
 {
 
-/* XXX RH TODO add these
-  // Action to slow down robot when localization score drops but not lost.
-  ArActionSlowDownWhenNotCertain actionSlowDown(&locTask);
-  pathTask.getPathPlanActionGroup()->addAction(&actionSlowDown, 140);
-
-  // Action to stop the robot when localization is "lost" (score too low)
-  ArActionLost actionLostPath(&locTask, &pathTask);
-  pathTask.getPathPlanActionGroup()->addAction(&actionLostPath, 150);
-
-  // Prevent normal teleoperation driving if localization is lost using
-  // a high-priority action, which enables itself when the particular mode is
-  // active.
-  // (You have to enter unsafe drive mode to drive when lost.)
-  ArActionLost actionLostRatioDrive(&gpsLocTask, &pathTask, &modeRatioDrive);
-  modeRatioDrive.getActionGroup()->addAction(&actionLostRatioDrive, 110);
-
-  // Wander mode (also prevent wandering if lost):
-  ArServerModeWander modeWander(&server, &robot);
-  ArActionLost actionLostWander(&gpsLocTask, &pathTask, &modeWander);
-  modeWander.getActionGroup()->addAction(&actionLostWander, 110);
-
-  // Make it so our "lost" actions don't stop us while mapping
-  handlerMapping.addMappingStartCallback(actionLostPath.getDisableCB());
-  handlerMapping.addMappingStartCallback(actionLostRatioDrive.getDisableCB());
-  handlerMapping.addMappingStartCallback(actionLostWander.getDisableCB());
-
-  // And then let them make us stop as usual when done mapping
-  handlerMapping.addMappingEndCallback(actionLostPath.getEnableCB());
-  handlerMapping.addMappingEndCallback(actionLostRatioDrive.getEnableCB());
-  handlerMapping.addMappingEndCallback(actionLostWander.getEnableCB());
-
-*/
 
 public:
-  LocSwitcher(ArRobot *robot, ArLocalizationTask *laserLoc, ArGPSLocalizationTask *gpsLoc, ArServerHandlerCommands *cmdSrv);
-  ~LocSwitcher();
+  LocSwitcher(ArRobot *robot, ArLocalizationTask *laserLoc, ArGPSLocalizationTask *gpsLoc,
+    ArServerHandlerCommands *cmdSrv = 0/*, 
+    ArActionLost *laserLostAct = 0, ArActionLost *gpsLostAct = 0, 
+    ArActionSlowDownWhenNotCertain *laserSlowDownAct = 0,
+ArActionSlowDownWhenNotCertain *gpsSlowDownAct = 0*/
+);
+  virtual ~LocSwitcher();
   bool switchToLaser(int timeoutSecs = -1);
   bool switchToGPS(int timeoutSecs = -1);
   void switchToLaserAsync();
@@ -921,6 +894,8 @@ int main(int argc, char **argv)
   ArServerModeRatioDrive modeRatioDrive(&server, &robot);
 //  ArServerModeDrive modeDrive(&server, &robot);            // Older mode for compatability
 
+  // Wander mode
+  ArServerModeWander modeWander(&server, &robot);
 
 
   // Add drive mode section to the configuration, and also some custom (simple) commands:
@@ -1284,9 +1259,64 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
   ArLog::log(ArLog::Normal, "");
   ArLog::log(ArLog::Normal,
 	     "Directory for maps and file serving: %s", fileDir);
-
   ArLog::log(ArLog::Normal, "See the ARNL README.txt for more information");
   ArLog::log(ArLog::Normal, "");
+
+  // Action to slow down robot when laser localization score drops but not lost.
+  ArActionSlowDownWhenNotCertain actionSlowDown(&locTask, true);
+  pathTask.getPathPlanActionGroup()->addAction(&actionSlowDown, 140);
+
+  // Action to stop the robot when laser localization is "lost" (score too low)
+  ArActionLost actionLostPath(&locTask, &pathTask, NULL, "Prevent navigation if laser localization is lost", true);
+  pathTask.getPathPlanActionGroup()->addAction(&actionLostPath, 150);
+
+  // Prevent normal teleoperation driving if laser localization is lost using
+  // a high-priority action, which enables itself when the particular mode is
+  // active.
+  // (You have to enter unsafe drive mode to drive when lost.)
+  ArActionLost actionLostRatioDrive(&locTask, &pathTask, &modeRatioDrive, "Prevent drive if laser localization lost", true /* do nothing if loc idle*/ );
+  modeRatioDrive.getActionGroup()->addAction(&actionLostRatioDrive, 110);
+
+  // also prevent wandering if laser lost:
+  ArActionLost actionLostWander(&locTask, &pathTask, &modeWander, "Prevent wander if laser localization lost", true/*do nothing if loc idle*/ );
+  modeWander.getActionGroup()->addAction(&actionLostWander, 110);
+
+
+
+  // Action to slow down robot when gps localization score drops but not lost.
+  ArActionSlowDownWhenNotCertain actionSlowDownGPS(&gpsLocTask, true);
+  pathTask.getPathPlanActionGroup()->addAction(&actionSlowDownGPS, 140);
+
+  // Action to stop the robot when gps localization is "lost" (score too low)
+  ArActionLost actionGPSLostPath(&gpsLocTask, &pathTask, NULL, "Prevent navigation if GPS localization is lost", true);
+  pathTask.getPathPlanActionGroup()->addAction(&actionGPSLostPath, 150);
+
+  // Prevent normal teleoperation driving if gps localization is lost using
+  // a high-priority action, which enables itself when the particular mode is
+  // active.
+  // (You have to enter unsafe drive mode to drive when lost.)
+  ArActionLost actionGPSLostRatioDrive(&gpsLocTask, &pathTask, &modeRatioDrive, "Prevent driving if GPS localization lost", true);
+  modeRatioDrive.getActionGroup()->addAction(&actionGPSLostRatioDrive, 110);
+
+  // Wander mode (also prevent wandering if gps lost):
+  ArActionLost actionGPSLostWander(&gpsLocTask, &pathTask, &modeWander, "Prevent wander if GPS localization lost", true);
+  modeWander.getActionGroup()->addAction(&actionGPSLostWander, 110);
+
+  // Make it so our "lost" actions don't stop us while mapping
+  handlerMapping.addMappingStartCallback(actionLostPath.getDisableCB());
+  handlerMapping.addMappingStartCallback(actionLostRatioDrive.getDisableCB());
+  handlerMapping.addMappingStartCallback(actionLostWander.getDisableCB());
+  handlerMapping.addMappingStartCallback(actionGPSLostPath.getDisableCB());
+  handlerMapping.addMappingStartCallback(actionGPSLostRatioDrive.getDisableCB());
+  handlerMapping.addMappingStartCallback(actionGPSLostWander.getDisableCB());
+
+  // And then let them make us stop as usual when done mapping
+  handlerMapping.addMappingEndCallback(actionLostPath.getEnableCB());
+  handlerMapping.addMappingEndCallback(actionLostRatioDrive.getEnableCB());
+  handlerMapping.addMappingEndCallback(actionLostWander.getEnableCB());
+  handlerMapping.addMappingEndCallback(actionGPSLostPath.getEnableCB());
+  handlerMapping.addMappingEndCallback(actionGPSLostRatioDrive.getEnableCB());
+  handlerMapping.addMappingEndCallback(actionGPSLostWander.getEnableCB());
 
   // Set up localization switcher. laser should start out active.
   gpsLocTask.setIdleFlag(true);
@@ -1327,12 +1357,20 @@ ArRetFunctorC<double, ArRobot>(&robot, &ArRobot::getOdometerTimeMinutes),
 
 const int LocSwitcher::ourDefaultTimeout = 20; // secs
 
-LocSwitcher::LocSwitcher(ArRobot *robot, ArLocalizationTask *laserLoc, ArGPSLocalizationTask *gpsLoc, ArServerHandlerCommands* cmdSrv = 0) : 
+LocSwitcher::LocSwitcher(ArRobot *robot, ArLocalizationTask *laserLoc, ArGPSLocalizationTask *gpsLoc, 
+  ArServerHandlerCommands* cmdSrv /*,
+    ArActionLost *laserLostAct, ArActionLost *gpsLostAct, 
+    ArActionSlowDownWhenNotCertain *laserSlowDownAct, ArActionSlowDownWhenNotCertain *gpsSlowDownAct
+*/
+) : 
   myRobot(robot),
   myLaserLoc(laserLoc),
   myGPSLoc(gpsLoc),
   myActiveLoc(laserLoc),
   myCommandServer(cmdSrv)
+  //,
+  //myLaserLostAction(laserLostAct), myGPSLostAction(gpsLostAct), 
+  //myLaserSlowDownAction(laserSlowDownAct), myGPSSlowDownAction(gpsSlowDownAct)
 {
   if(cmdSrv)
   {
@@ -1370,12 +1408,16 @@ bool LocSwitcher::switchToLaser(int timeoutSecs)
 
   // deactivate GPS
   ArLog::log(ArLog::Normal, "LocSwitcher: Deactivating GPS...");
+//  if(myGPSLostAction) myGPSLostAction->disable();
+//  if(myGPSSlowDownAction) myGPSSlowDownAction->forceDisable(true);
   myGPSLoc->setLocalizationIdle(true);
   waitForLocIdle(timeoutSecs);
 
   // activate Laser
   ArLog::log(ArLog::Normal, "LocSwitcher: Activating Laser...");
   myLaserLoc->setLocalizationIdle(false);
+//  if(myLaserLostAction) myLaserLostAction->enable();
+//  if(myLaserSlowDownAction) myLaserSlowDownAction->forceDisable(false);
   myRobot->lock();
   ArPose p = myRobot->getPose();
   myRobot->unlock();
@@ -1400,12 +1442,17 @@ bool LocSwitcher::switchToGPS(int timeoutSecs)
 
   // deactivate Laser
   ArLog::log(ArLog::Normal, "LocSwitcher: Deactivating Laser...");
+//  if(myLaserLostAction) myLaserLostAction->disable();
+//  if(myLaserSlowDownAction) myLaserSlowDownAction->forceDisable(true);
   myLaserLoc->setLocalizationIdle(true);
   waitForLocIdle(timeoutSecs);
 
   // activate GPS
   ArLog::log(ArLog::Normal, "LocSwitcher: Activating GPS...");
   myGPSLoc->setLocalizationIdle(false);
+//  if(myGPSLostAction) myGPSLostAction->enable();
+//  if(myGPSSlowDownAction) myGPSSlowDownAction->forceDisable(false);
+  myActiveLoc = myGPSLoc;
   return waitForLocalized();
 }
 
